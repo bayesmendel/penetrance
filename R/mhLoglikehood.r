@@ -54,7 +54,7 @@ calculateBaseline <- function(cancer_type, gene, race, type, db) {
 #' @param beta Numeric, scale parameter for the Weibull distribution used to model carrier risk.
 #' @param delta Numeric, location parameter for the Weibull distribution used to model carrier risk.
 #' @param gamma Numeric, scaling factor applied to the Weibull distribution to adjust carrier risk.
-#' @param prev Numeric, the prevalence of the risk allele in the population.
+#' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the population. This should be approximately 2p where p is the allele frequency for rare diseases.
 #' @param max_age Integer, the maximum age up to which the calculations are performed.
 #'
 #' @return A list containing:
@@ -64,8 +64,12 @@ calculateBaseline <- function(cancer_type, gene, race, type, db) {
 #'
 #' @export
 calculateNCPen <- function(SEER_baseline, alpha, beta, delta, gamma, prev, max_age) {
-  # Calculate probability weights for carriers based on allele frequencies
-  weights <- 2 * prev * (1 - prev) # Heterozygous carriers only
+  # Calculate probability weights for carriers based on carrier prevalence
+  # Note: prev here is carrier prevalence (heterozygote frequency), not allele frequency
+  # In the original HWE formula: weights = 2*p*(1-p) where p = allele frequency
+  # Since prev = 2*p (for rare alleles), we have: weights = prev*(1 - prev/2)
+  # For rare diseases where prev is small, this simplifies to approximately prev
+  weights <- prev * (1 - prev/2) # Heterozygous carriers only
   
   # Initialize vectors to store the yearly and cumulative probability of not getting the disease
   weightedCarrierRisk <- numeric(max_age)
@@ -123,7 +127,7 @@ absValue <- function(x) {
 #' @param max_age Integer, maximum age considered in the analysis.
 #' @param baselineRisk Numeric matrix, baseline risk for each age by sex. Rows correspond to sex (1 for male, 2 for female) and columns to age.
 #' @param BaselineNC Logical, indicates if non-carrier penetrance should be based on SEER data.
-#' @param prev Numeric, prevalence of the risk allele in the population.
+#' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the population. This should be approximately 2p where p is the allele frequency for rare diseases.
 #'
 #' @return Numeric vector, containing penetrance values for unaffected and affected individuals.
 #'
@@ -197,7 +201,7 @@ lik.fn <- function(i, data, alpha_male, alpha_female, beta_male, beta_female,
 #' @param twins Information on monozygous twins
 #' @param max_age Integer, maximum age
 #' @param baseline_data Numeric matrix of baseline risk data
-#' @param prev Numeric, prevalence
+#' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the population
 #' @param geno_freq Numeric vector of frequencies
 #' @param trans Numeric matrix of transmission probabilities
 #' @param BaselineNC Logical for baseline choice
@@ -304,7 +308,7 @@ mhLogLikelihood_clipp <- function(paras, families, twins, max_age, baseline_data
 #' @param twins Information on monozygous twins or triplets in the pedigrees.
 #' @param max_age Integer, maximum age considered in the analysis.
 #' @param baseline_data Numeric vector, baseline risk data for each age.
-#' @param prev Numeric, prevalence of the risk allele in the population.
+#' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the population. This should be approximately 2p where p is the allele frequency for rare diseases.
 #' @param geno_freq Numeric vector, represents the frequency of the risk type and its complement in the population.
 #' @param trans Numeric matrix, transition matrix that defines the probabilities of allele transmission from parents to offspring.
 #' @param BaselineNC Logical, indicates if non-carrier penetrance should be based on the baseline data or the calculated non-carrier penetrance.
@@ -361,7 +365,7 @@ mhLogLikelihood_clipp_noSex <- function(paras, families, twins, max_age, baselin
 #' @param max_age Integer, maximum age considered in the analysis.
 #' @param baselineRisk Numeric vector, baseline risk for each age.
 #' @param BaselineNC Logical, indicates if non-carrier penetrance should be based on SEER data or the calculated non-carrier penetrance.
-#' @param prev Numeric, prevalence of the risk allele in the population.
+#' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the population. This should be approximately 2p where p is the allele frequency for rare diseases.
 #' 
 #' @return Numeric vector, containing likelihood values for unaffected and affected individuals.
 #'

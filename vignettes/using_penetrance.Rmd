@@ -168,7 +168,7 @@ To run the algorithm, we require the user to input:
 - A single chain with 10k iterations of the adaptive MH algorithm. 
 The number of cores for the paralellization is set to `ncores = 4`. 
 - The pedigree data are the test family 1. 
-- The prevalence is set at `prev = 0.0001`. 
+- The allele frequency is set at `allele_freq = 0.0001`, which will be automatically converted to carrier prevalence (approximately 0.0002 for rare variants). 
 - The `penetrance` function takes baseline age-specific probabilitie of developing 
 cancer as as input `baseline_data`. In the default setting with `BaselineNC = TRUE` 
 this baseline is assumed to reflect the non-carrier penetrance. 

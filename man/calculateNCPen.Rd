@@ -17,7 +17,7 @@ calculateNCPen(SEER_baseline, alpha, beta, delta, gamma, prev, max_age)
 
 \item{gamma}{Numeric, scaling factor applied to the Weibull distribution to adjust carrier risk.}
 
-\item{prev}{Numeric, the prevalence of the risk allele in the population.}
+\item{prev}{Numeric, the carrier prevalence (heterozygote frequency) in the population. This should be approximately 2p where p is the allele frequency for rare diseases.}
 
 \item{max_age}{Integer, the maximum age up to which the calculations are performed.}
 }

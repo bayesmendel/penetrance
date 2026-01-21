@@ -14,7 +14,7 @@
 #' @param max_age Integer, the maximum age considered in the analysis.
 #' @param baseline_data Numeric matrix or vector, containing baseline risk estimates for different ages and sexes.
 #' @param prior_distributions List, containing prior distributions for the parameters being estimated.
-#' @param prev Numeric, the prevalence of the risk allele in the population.
+#' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the population. Note: This is automatically calculated from allele frequency in the main penetrance() function as approximately 2p for rare variants.
 #' @param median_max Logical, indicates if the maximum median age should be used for the Weibull distribution.
 #' @param BaselineNC Logical, indicates if non-carrier penetrance should be based on SEER data.
 #' @param var Numeric, the variance for the proposal distribution in the Metropolis-Hastings algorithm.
@@ -434,7 +434,8 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
 
   # Initialize the model
   # geno_freq represents the frequency of the risk type and its complement in the population
-  # prev is the frequency of the risk allele.
+  # Note: prev here is carrier prevalence (heterozygote frequency), not allele frequency
+  # It is calculated as approximately 2p in the main penetrance() function for rare diseases
   geno_freq <- c(1 - prev, prev)
 
   # trans is a transition matrix that defines the probabilities of allele transmission from parents to offspring

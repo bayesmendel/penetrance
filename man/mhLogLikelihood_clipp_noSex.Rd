@@ -29,7 +29,7 @@ Should contain in order: gamma, delta, given_median, given_first_quartile.}
 
 \item{baseline_data}{Numeric vector, baseline risk data for each age.}
 
-\item{prev}{Numeric, prevalence of the risk allele in the population.}
+\item{prev}{Numeric, the carrier prevalence (heterozygote frequency) in the population. This should be approximately 2p where p is the allele frequency for rare diseases.}
 
 \item{geno_freq}{Numeric vector, represents the frequency of the risk type and its complement in the population.}
 

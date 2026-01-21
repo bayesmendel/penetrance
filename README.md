@@ -185,7 +185,7 @@ specification are available:
     reasonable assumption. The baseline_data must be a data frame with
     baseline data for females and males.
 
--   Furthermore the specification of prevalence of the carrier status (`prev`) is required. For rare autosomal dominant conditions, `prevalence = 2 * allele frequency`. 
+-   The specification of allele frequency (`allele_freq`) is required. The function automatically converts this to carrier prevalence using the approximation `carrier_prevalence ≈ 2 * allele_freq` for rare autosomal dominant conditions. 
 
 -   The PenEsim also includes an option for automatic age imputation
     `AgeImputation`. We apply an age imputation as part of the MCMC

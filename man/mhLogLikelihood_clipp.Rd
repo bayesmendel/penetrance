@@ -28,7 +28,7 @@ mhLogLikelihood_clipp(
 
 \item{baseline_data}{Numeric matrix of baseline risk data}
 
-\item{prev}{Numeric, prevalence}
+\item{prev}{Numeric, the carrier prevalence (heterozygote frequency) in the population}
 
 \item{geno_freq}{Numeric vector of frequencies}
 

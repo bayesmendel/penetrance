@@ -154,7 +154,7 @@ Penetrance provides the user with a flexible approach to prior specification, ba
 
 - The `PenEstim` function takes baseline age-specific probabilitie of developing cancer as as input `baseline_data`. In the default setting with `BaselineNC = TRUE` this baseline is assumed to reflect the non-carrier penetrance. For rare mutations this is considered a reasonable assumption. The baseline_data must be a data frame with baseline data for females and males. 
 
-- Furthermore the specification of the allele frequency of the pathogenic variant (`af`) is required. 
+- The specification of allele frequency (`allele_freq`) is required. The function automatically converts this to carrier prevalence using the approximation `carrier_prevalence ≈ 2 * allele_freq` for rare autosomal dominant conditions. 
 
 - The PenEsim also includes an option for automatic age imputation `AgeImputation`. We apply an age imputation as part of the MCMC routine. The imputation of ages is performed based on the individual's affected status ($aff$), sex ($sex$), and their degree of relationship to the proband who is a carrier of the PV. For greater detail on the age imputation approach see documentation. 
 

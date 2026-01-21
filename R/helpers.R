@@ -181,22 +181,22 @@ transformDF <- function(df) {
 #'
 #' @examples
 #' # Valid allele frequencies
-#' validate_allele_freq(0.0001)  # Common for rare variants
+#' validate_allele_freq(0.0001) # Common for rare variants
 #' validate_allele_freq(0.001)
 #' validate_allele_freq(0.05)
 #'
 #' \dontrun{
 #' # Invalid inputs (will throw errors)
-#' validate_allele_freq("0.001")       # Not numeric
+#' validate_allele_freq("0.001")          # Not numeric
 #' validate_allele_freq(c(0.001, 0.002))  # Vector instead of scalar
-#' validate_allele_freq(-0.001)       # Negative value
-#' validate_allele_freq(1.5)          # Greater than 1
-#' validate_allele_freq(NA)           # Missing value
+#' validate_allele_freq(-0.001)           # Negative value
+#' validate_allele_freq(1.5)              # Greater than 1
+#' validate_allele_freq(NA)               # Missing value
 #' 
 #' # Valid but will trigger warnings
-#' validate_allele_freq(0.02)         # Unusually high (>1%), warning issued
-#' validate_allele_freq(0)            # Edge case, warning issued
-#' validate_allele_freq(1)            # Edge case, warning issued
+#' validate_allele_freq(0.02)         # Unusually high (>1%), warning
+#' validate_allele_freq(0)            # Edge case, warning
+#' validate_allele_freq(1)            # Edge case, warning
 #' }
 #'
 #' @export
@@ -218,14 +218,14 @@ validate_allele_freq <- function(allele_freq, param_name = "allele_freq", warn_t
                 "Please provide a numeric value between 0 and 1."))
   }
   
-  # Check if the input is a single value (not a vector)
+  # Check if the input is a single value
   if (length(allele_freq) != 1) {
     stop(paste0("Error: '", param_name, "' must be a single numeric value, not a vector. ",
                 "Received ", length(allele_freq), " values. ",
                 "Please provide a single allele frequency."))
   }
   
-  # Check if the value is within valid range [0, 1]
+  # Check if the value is within [0, 1]
   if (allele_freq < 0 || allele_freq > 1) {
     stop(paste0("Error: '", param_name, "' must be between 0 and 1 (inclusive). ",
                 "Received: ", allele_freq, ". ",
@@ -397,7 +397,7 @@ validate_baseline_data <- function(baseline_data, sex_specific = TRUE,
     validate_probability_vector(baseline_data$Female, "Female")
     
   } else {
-    # Not sex_specific: expect a vector or single-column data frame
+    # Not sex_specific expect a vector or single-column data frame
     if (is.data.frame(baseline_data)) {
       if (ncol(baseline_data) != 1) {
         stop(paste0("Error: '", param_name, "' must be a single-column data frame when sex_specific is FALSE. ",

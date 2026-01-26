@@ -29,7 +29,6 @@ LazyDataCompression: xz
 RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
-SystemRequirements: C++11
 Suggests: 
     knitr,
     rmarkdown,

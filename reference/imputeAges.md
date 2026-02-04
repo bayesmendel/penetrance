@@ -1,0 +1,181 @@
+# Impute Missing Ages in Family-Based Data
+
+Imputes missing ages in family-based data using a combination of Weibull
+distributions for affected individuals and empirical distributions for
+unaffected individuals. The function can perform both sex-specific and
+non-sex-specific imputations.
+
+## Usage
+
+``` r
+imputeAges(
+  data,
+  na_indices,
+  baseline_male = NULL,
+  baseline_female = NULL,
+  alpha_male = NULL,
+  beta_male = NULL,
+  delta_male = NULL,
+  alpha_female = NULL,
+  beta_female = NULL,
+  delta_female = NULL,
+  baseline = NULL,
+  alpha = NULL,
+  beta = NULL,
+  delta = NULL,
+  max_age,
+  sex_specific = TRUE,
+  max_attempts = 100,
+  geno_freq,
+  trans,
+  lik
+)
+```
+
+## Arguments
+
+- data:
+
+  A data frame containing family-based data with columns: family,
+  individual, father, mother, sex, aff, age, geno, and isProband
+
+- na_indices:
+
+  Vector of indices where ages need to be imputed
+
+- baseline_male, baseline_female:
+
+  Data frames containing baseline age distributions for males/females
+
+- alpha_male, alpha_female:
+
+  Shape parameters for male/female Weibull distributions
+
+- beta_male, beta_female:
+
+  Scale parameters for male/female Weibull distributions
+
+- delta_male, delta_female:
+
+  Location parameters for male/female Weibull distributions
+
+- baseline:
+
+  Data frame containing overall baseline age distribution
+  (non-sex-specific)
+
+- alpha, beta, delta:
+
+  Overall Weibull parameters (non-sex-specific)
+
+- max_age:
+
+  Maximum allowable age
+
+- sex_specific:
+
+  Logical; whether to use sex-specific parameters
+
+- max_attempts:
+
+  Maximum number of attempts for generating valid ages
+
+- geno_freq:
+
+  Vector of genotype frequencies
+
+- trans:
+
+  Transmission probabilities
+
+- lik:
+
+  Likelihood matrix
+
+## Value
+
+A data frame with the following modifications:
+
+- age:
+
+  Updated with imputed ages for previously missing values
+
+The rest of the data frame remains unchanged.
+
+## Examples
+
+``` r
+# Create sample data with the same structure as used in mhChain
+data <- data.frame(
+  family = rep(1:2, each=5),
+  individual = rep(1:5, 2),
+  father = c(NA,1,1,1,1, NA,6,6,6,6),
+  mother = c(NA,2,2,2,2, NA,7,7,7,7),
+  sex = c(1,2,1,2,1, 1,2,1,2,1),
+  aff = c(1,0,1,0,NA, 1,0,1,0,NA),
+  age = c(45,NA,25,NA,20, 50,NA,30,NA,22),
+  geno = c("1/2",NA,"1/2",NA,NA, "1/2",NA,"1/2",NA,NA),
+  isProband = c(1,0,0,0,0, 1,0,0,0,0)
+)
+
+# Initialize parameters
+na_indices <- which(is.na(data$age))
+geno_freq <- c(0.999, 0.001)  # Frequency of normal and risk alleles
+trans <- matrix(c(1,0,0.5,0.5), nrow=2)  # Transmission matrix
+lik <- matrix(1, nrow=nrow(data), ncol=2)  # Likelihood matrix
+
+# Create baseline data for both sex-specific and non-sex-specific cases
+age_range <- 20:94
+n_ages <- length(age_range)
+
+# Sex-specific baseline data
+baseline_male <- data.frame(
+  age = age_range,
+  cum_prob = (1:n_ages)/n_ages * 0.8  # Male cumulative probabilities
+)
+
+baseline_female <- data.frame(
+  age = age_range,
+  cum_prob = (1:n_ages)/n_ages * 0.9  # Female cumulative probabilities
+)
+
+# Non-sex-specific baseline data
+baseline <- data.frame(
+  age = age_range,
+  cum_prob = (1:n_ages)/n_ages * 0.85  # Overall cumulative probabilities
+)
+
+# Example with sex-specific imputation
+imputed_data_sex <- imputeAges(
+  data = data,
+  na_indices = na_indices,
+  baseline_male = baseline_male,
+  baseline_female = baseline_female,
+  alpha_male = 3.5,
+  beta_male = 20,
+  delta_male = 20,
+  alpha_female = 3.2,
+  beta_female = 18,
+  delta_female = 18,
+  max_age = 94,
+  sex_specific = TRUE,
+  geno_freq = geno_freq,
+  trans = trans,
+  lik = lik
+)
+
+# Example with non-sex-specific imputation
+imputed_data_nosex <- imputeAges(
+  data = data,
+  na_indices = na_indices,
+  baseline = baseline,
+  alpha = 3.3,
+  beta = 19,
+  delta = 19,
+  max_age = 94,
+  sex_specific = FALSE,
+  geno_freq = geno_freq,
+  trans = trans,
+  lik = lik
+)
+```

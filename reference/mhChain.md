@@ -1,0 +1,197 @@
+# Execution of a Single Chain in Metropolis-Hastings for Cancer Risk Estimation
+
+Performs a single chain execution in the Metropolis-Hastings algorithm
+for Bayesian inference, specifically tailored for cancer risk
+estimation. This function can handle both sex-specific and
+non-sex-specific scenarios.
+
+## Usage
+
+``` r
+mhChain(
+  seed,
+  n_iter,
+  burn_in,
+  chain_id,
+  ncores,
+  data,
+  twins,
+  max_age,
+  baseline_data,
+  prior_distributions,
+  prev,
+  median_max,
+  BaselineNC,
+  var,
+  age_imputation,
+  imp_interval,
+  remove_proband,
+  sex_specific
+)
+```
+
+## Arguments
+
+- seed:
+
+  Integer, the seed for the random number generator to ensure
+  reproducibility.
+
+- n_iter:
+
+  Integer, the number of iterations to perform in the
+  Metropolis-Hastings algorithm.
+
+- burn_in:
+
+  Integer, the number of initial iterations to discard (burn-in period).
+
+- chain_id:
+
+  Integer, the identifier for the chain being executed.
+
+- ncores:
+
+  Integer, the number of cores to use for parallel computation.
+
+- data:
+
+  Data frame, containing family and genetic information used in the
+  analysis.
+
+- twins:
+
+  Information on monozygous twins or triplets in the pedigrees.
+
+- max_age:
+
+  Integer, the maximum age considered in the analysis.
+
+- baseline_data:
+
+  Numeric matrix or vector, containing baseline risk estimates for
+  different ages and sexes.
+
+- prior_distributions:
+
+  List, containing prior distributions for the parameters being
+  estimated.
+
+- prev:
+
+  Numeric, the prevalence of the risk allele in the population.
+
+- median_max:
+
+  Logical, indicates if the maximum median age should be used for the
+  Weibull distribution.
+
+- BaselineNC:
+
+  Logical, indicates if non-carrier penetrance should be based on SEER
+  data.
+
+- var:
+
+  Numeric, the variance for the proposal distribution in the
+  Metropolis-Hastings algorithm.
+
+- age_imputation:
+
+  Logical, indicates if age imputation should be performed.
+
+- imp_interval:
+
+  Integer, the interval at which age imputation should be performed when
+  age_imputation = TRUE.
+
+- remove_proband:
+
+  Logical, indicates if the proband should be removed from the analysis.
+
+- sex_specific:
+
+  Logical, indicates if the analysis should differentiate by sex.
+
+## Value
+
+A list containing samples, log likelihoods, log-acceptance ratio, and
+rejection rate for each iteration.
+
+## Examples
+
+``` r
+# Create sample data in PanelPRO format
+data <- data.frame(
+  ID = 1:10,
+  PedigreeID = rep(1, 10),
+  Sex = c(0, 1, 0, 1, 0, 1, 0, 1, 0, 1), # 0=female, 1=male
+  MotherID = c(NA, NA, 1, 1, 3, 3, 5, 5, 7, 7),
+  FatherID = c(NA, NA, 2, 2, 4, 4, 6, 6, 8, 8),
+  isProband = c(1, rep(0, 9)),
+  CurAge = c(45, 35, 55, 40, 50, 45, 60, 38, 52, 42),
+  isAff = c(1, 0, 1, 0, 1, 0, 1, 0, 1, 0),
+  Age = c(40, NA, 50, NA, 45, NA, 55, NA, 48, NA),
+  Geno = c(1, NA, 1, 0, 1, 0, NA, NA, 1, NA)
+)
+
+# Transform data into required format
+data <- transformDF(data)
+
+# Set parameters for the chain
+seed <- 123
+n_iter <- 10
+burn_in <- 0.1 # 10% burn-in
+chain_id <- 1
+ncores <- 1
+max_age <- 100
+
+# Create baseline data (simplified example)
+baseline_data <- matrix(
+  c(rep(0.005, max_age), rep(0.008, max_age)), # Increased baseline risks
+  ncol = 2,
+  dimnames = list(NULL, c("Male", "Female"))
+)
+
+# Set prior distributions with carefully chosen bounds
+prior_distributions <- list(
+  prior_params = list(
+    asymptote = list(g1 = 2, g2 = 3), # Mode around 0.4
+    threshold = list(min = 20, max = 30), # Narrower range for threshold
+    median = list(m1 = 3, m2 = 2), # Mode around 0.6
+    first_quartile = list(q1 = 2, q2 = 3) # Mode around 0.4
+  )
+)
+
+# Create variance vector for all 8 parameters in sex-specific case
+# Using very small variances for initial stability
+var <- c(
+  0.005, 0.005, # asymptotes (smaller variance since between 0-1)
+  1, 1, # thresholds
+  1, 1, # medians
+  1, 1
+) # first quartiles
+
+# Run the chain
+results <- mhChain(
+  seed = seed,
+  n_iter = n_iter,
+  burn_in = burn_in,
+  chain_id = chain_id,
+  ncores = ncores,
+  data = data,
+  twins = NULL,
+  max_age = max_age,
+  baseline_data = baseline_data,
+  prior_distributions = prior_distributions,
+  prev = 0.05, # Increased prevalence
+  median_max = FALSE, # Changed to FALSE for simpler median constraints
+  BaselineNC = TRUE,
+  var = var,
+  age_imputation = FALSE,
+  imp_interval = 10,
+  remove_proband = TRUE,
+  sex_specific = TRUE
+)
+#> Starting Chain 1
+```

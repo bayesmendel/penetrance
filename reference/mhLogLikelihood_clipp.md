@@ -1,0 +1,114 @@
+# Calculate Log Likelihood using clipp Package
+
+Calculate Log Likelihood using clipp Package
+
+## Usage
+
+``` r
+mhLogLikelihood_clipp(
+  paras,
+  families,
+  twins,
+  max_age,
+  baseline_data,
+  prev,
+  geno_freq,
+  trans,
+  BaselineNC,
+  ncores
+)
+```
+
+## Arguments
+
+- paras:
+
+  Numeric vector of parameters
+
+- families:
+
+  Data frame of pedigree information
+
+- twins:
+
+  Information on monozygous twins
+
+- max_age:
+
+  Integer, maximum age
+
+- baseline_data:
+
+  Numeric matrix of baseline risk data
+
+- prev:
+
+  Numeric, prevalence
+
+- geno_freq:
+
+  Numeric vector of frequencies
+
+- trans:
+
+  Numeric matrix of transmission probabilities
+
+- BaselineNC:
+
+  Logical for baseline choice
+
+- ncores:
+
+  Integer for parallel computation
+
+## Value
+
+Numeric value representing the calculated log likelihood.
+
+## Examples
+
+``` r
+# Create example parameters and data
+paras <- c(0.8, 0.7, 20, 25, 50, 45, 30, 35)  # Example parameters
+
+# Create sample data in PanelPRO format
+families <- data.frame(
+  ID = 1:10,
+  PedigreeID = rep(1, 10),
+  Sex = c(0, 1, 0, 1, 0, 1, 0, 1, 0, 1),  # 0=female, 1=male
+  MotherID = c(NA, NA, 1, 1, 3, 3, 5, 5, 7, 7),
+  FatherID = c(NA, NA, 2, 2, 4, 4, 6, 6, 8, 8),
+  isProband = c(1, rep(0, 9)),
+  CurAge = c(45, 35, 55, 40, 50, 45, 60, 38, 52, 42),
+  isAff = c(1, 0, 1, 0, 1, 0, 1, 0, 1, 0),
+  Age = c(40, NA, 50, NA, 45, NA, 55, NA, 48, NA),
+  Geno = c(1, NA, 1, 0, 1, 0, NA, NA, 1, NA)
+)
+
+# Transform data into required format
+families <- transformDF(families)
+
+trans <- matrix(
+  c(
+    1, 0, # both parents are wild type
+    0.5, 0.5, # mother is wildtype and father is a heterozygous carrier
+    0.5, 0.5, # father is wildtype and mother is a heterozygous carrier
+    1 / 3, 2 / 3 # both parents are heterozygous carriers
+  ),
+ nrow = 4, ncol = 2, byrow = TRUE
+)
+
+# Calculate log likelihood
+loglik <- mhLogLikelihood_clipp(
+  paras = paras,
+  families = families,
+  twins = NULL,
+  max_age = 94,
+  baseline_data = baseline_data_default,
+  prev = 0.001,
+  geno_freq = c(0.999, 0.001),
+  trans = trans,
+  BaselineNC = TRUE,
+  ncores = 1
+)
+```

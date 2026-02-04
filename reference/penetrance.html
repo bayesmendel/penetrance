@@ -19,7 +19,7 @@ chains and provides various options for analyzing and visualizing the results.">
 
     <a class="navbar-brand me-2" href="../index.html">penetrance</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -322,24 +322,24 @@ Default data is provided for Colorectal cancer from SEER (up to age 94). If the 
 <span class="r-in"><span>  plot_acf <span class="op">=</span> <span class="cn">FALSE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Rejection rates:</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   Chain 1: 0.70</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   Chain 1: 0.20</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># View basic results</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">summary_stats</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Median_Male    Median_Female   Threshold_Male  Threshold_Female</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   :39.83   Min.   :49.99   Min.   :34.91   Min.   :25.00   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1st Qu.:40.00   1st Qu.:49.99   1st Qu.:34.94   1st Qu.:25.00   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Median :40.00   Median :50.00   Median :35.00   Median :25.00   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Mean   :39.98   Mean   :50.00   Mean   :34.97   Mean   :25.05   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3rd Qu.:40.00   3rd Qu.:50.00   3rd Qu.:35.00   3rd Qu.:25.00   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Max.   :40.03   Max.   :50.00   Max.   :35.00   Max.   :25.29   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  First_Quartile_Male First_Quartile_Female Asymptote_Male   Asymptote_Female</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   :38.93       Min.   :32.50         Min.   :0.5139   Min.   :0.5571  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1st Qu.:39.00       1st Qu.:32.50         1st Qu.:0.5672   1st Qu.:0.7194  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Median :39.00       Median :32.50         Median :0.5672   Median :0.7194  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Mean   :39.02       Mean   :32.59         Mean   :0.5786   Mean   :0.7031  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3rd Qu.:39.00       3rd Qu.:32.63         3rd Qu.:0.5672   3rd Qu.:0.7194  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Max.   :39.14       Max.   :32.83         Max.   :0.6793   Max.   :0.7534  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   :40.00   Min.   :50.00   Min.   :32.99   Min.   :25.00   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1st Qu.:40.66   1st Qu.:50.61   1st Qu.:33.44   1st Qu.:25.95   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Median :42.86   Median :52.98   Median :33.63   Median :26.32   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Mean   :42.33   Mean   :52.38   Mean   :33.69   Mean   :26.27   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3rd Qu.:43.34   3rd Qu.:53.20   3rd Qu.:33.81   3rd Qu.:26.60   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Max.   :44.74   Max.   :54.92   Max.   :35.00   Max.   :27.21   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  First_Quartile_Male First_Quartile_Female Asymptote_Male    Asymptote_Female</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   :38.01       Min.   :31.07         Min.   :0.05812   Min.   :0.5086  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1st Qu.:39.12       1st Qu.:32.52         1st Qu.:0.11858   1st Qu.:0.5667  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Median :40.03       Median :32.94         Median :0.13965   Median :0.5962  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Mean   :39.61       Mean   :32.60         Mean   :0.14527   Mean   :0.6219  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3rd Qu.:40.14       3rd Qu.:33.16         3rd Qu.:0.16854   3rd Qu.:0.7064  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Max.   :40.66       Max.   :33.48         Max.   :0.23874   Max.   :0.7546  </span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
@@ -352,7 +352,7 @@ Default data is provided for Colorectal cancer from SEER (up to age 94). If the 
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

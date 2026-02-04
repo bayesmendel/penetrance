@@ -13,7 +13,7 @@ Imports:
     graphics,
     grDevices
 Authors@R: c(
-    person("Nicolas", "Kubista", email = "bmendel@jimmy.harvard.edu", role = c("aut", "cre")),
+    person("Sol", "Rosito", email = "bmendel@jimmy.harvard.edu", role = "cre"),
     person("BayesMendel", "Lab", role = "aut"))
 Description: Implements statistical methods for estimating disease penetrance in 
     family-based studies. Penetrance refers to the probability of disease§

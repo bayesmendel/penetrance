@@ -201,8 +201,7 @@ head(result$summary_stats)
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/nicokubi/penetrance}
-  \item \url{https://nicokubi.github.io/penetrance/}
+  \item \url{https://github.com/bayesmendel/penetrance}
 }
 
 }

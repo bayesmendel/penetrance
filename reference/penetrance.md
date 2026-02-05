@@ -274,9 +274,7 @@ Key features:
 
 Useful links:
 
-- <https://github.com/nicokubi/penetrance>
-
-- <https://nicokubi.github.io/penetrance/>
+- <https://github.com/bayesmendel/penetrance>
 
 ## Author
 

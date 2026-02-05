@@ -207,7 +207,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Nicolas Kubista \email{bmendel@jimmy.harvard.edu}
+\strong{Maintainer}: Sol Rosito \email{bmendel@jimmy.harvard.edu}
 
 Authors:
 \itemize{

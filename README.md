@@ -54,7 +54,7 @@ understanding the genetic basis of risk is critical for patient care.
 
 To install, use
 
-    git clone git@github.com:nicokubi/penetrance.git
+    git clone git@github.com:bayesmendel/penetrance.git
 
 Open the source directory as new R project and install the package with
 
@@ -62,7 +62,7 @@ Open the source directory as new R project and install the package with
 
 or directly in R studio
 
-    devtools::install_github("https://github.com/nicokubi/penetrance")
+    devtools::install_github("https://github.com/bayesmendel/penetrance")
 
 ## Quick-start guide
 

@@ -280,7 +280,7 @@ Useful links:
 
 ## Author
 
-**Maintainer**: Nicolas Kubista <bmendel@jimmy.harvard.edu>
+**Maintainer**: Sol Rosito <bmendel@jimmy.harvard.edu>
 
 Authors:
 

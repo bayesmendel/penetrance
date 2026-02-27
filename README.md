@@ -114,7 +114,7 @@ in the correct format with the following columns:
     encoded as `NA` if the individual was not diagnosed. Allowed ages
     range from `1` to `94`. Unknown ages can be left empty or coded as `NA`.
 
--   `geno`: A column for germline testing or tumor marker testing
+-   `Geno`: A column for germline testing or tumor marker testing
     results. Positive results should be coded as `1`, negative results
     as `0`, and unknown results as `NA` or left empty.
 
@@ -134,7 +134,7 @@ approach is run. Available options are:
 #'   - `CurAge`: A numeric value indicating the age of censoring (current age if the person is alive or age at death if the person is deceased). Allowed ages range from `1` to `94`. Unknown ages can be left empty or coded as `NA`. 
 #'   - `isAff`: A numeric value indicating the affection status of cancer, with `1` for diagnosed individuals and `0` otherwise. Missing entries are not supported.
 #'   - `Age`: A numeric value indicating the age of cancer diagnosis, encoded as `NA` if the individual was not diagnosed. Allowed ages range from `1` to `94`. Unknown ages can be left empty or coded as `NA`. 
-#'   - `geno`: A column for germline testing or tumor marker testing results. Positive results should be coded as `1`, negative results as `0`, and unknown results as `NA` or left empty.
+#'   - `Geno`: A column for germline testing or tumor marker testing results. Positive results should be coded as `1`, negative results as `0`, and unknown results as `NA` or left empty.
 #' @param twins A list specifying identical twins or triplets in the family. For example, to indicate that "ora024" and "ora027" are identical twins, and "aey063" and "aey064" are identical twins, use the following format: `twins <- list(c("ora024", "ora027"), c("aey063", "aey064"))`.
 #' @param n_chains Integer, the number of chains for parallel computation. Default is 1.
 #' @param n_iter_per_chain Integer, the number of iterations for each chain. Default is 10000.

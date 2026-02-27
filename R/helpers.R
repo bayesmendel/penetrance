@@ -102,7 +102,18 @@ validate_weibull_parameters <- function(given_first_quartile, given_median, thre
 #'   \item{aff}{Affection status}
 #'   \item{sex}{Sex (2 for female, 1 for male)}
 #'   \item{age}{Age at diagnosis or current age}
-#'   \item{geno}{Genotype information}
+#'   \item{geno}{Genotype information (internal format)}
+#'   
+#' @details
+#' This function implements a two-tier naming convention:
+#' \itemize{
+#'   \item{User-facing input: uppercase 'Geno' (values 0 or 1)}
+#'   \item{Internal processing: lowercase 'geno' (values "1/1" or "1/2")}
+#' }
+#' The transformation converts 'Geno' = 1 (carrier) to 'geno' = "1/2", and
+#' 'Geno' = 0 (non-carrier) to 'geno' = "1/1". This separation provides clear
+#' distinction between user interface and internal implementation.
+#'
 #' 
 #' @examples
 #' # Create example data frame
@@ -142,12 +153,14 @@ transformDF <- function(df) {
     }
   })
   
-  # Process 'geno' column, checking for both 'geno' and 'Geno'
+  # Convert user-facing 'Geno' column to internal 'geno' format
+  # User input: 'Geno' with values 0 (non-carrier) or 1 (carrier)
+  # Internal format: 'geno' with values "1/1" (non-carrier) or "1/2" (carrier)
   if ("Geno" %in% colnames(df)) {
     df$geno <- ifelse(is.na(df$Geno), "", ifelse(df$Geno == 1, "1/2", ifelse(df$Geno == 0, "1/1", df$Geno)))
   } else {
-    # Handle case where neither geno nor Geno column is present, maybe default or error
-    warning("Neither 'geno' nor 'Geno' column found in the input data frame. 'geno' column in output will be empty.")
+    # Handle case where 'Geno' column is not present
+    warning("'Geno' column not found in the input data frame. 'geno' column in output will be empty.")
     df$geno <- ""
   }
   

@@ -142,11 +142,23 @@ transformDF <- function(df) {
   df$father <- df$FatherID
   df$aff <- df$isAff
   df$sex <- ifelse(df$Sex == 0, 2, df$Sex) # Convert 0s to 2s (female), keep 1s as is (male)
-  
+
+  # Warn about individuals with unknown affection status
+  if (any(is.na(df$isAff))) {
+    na_ids <- df$ID[is.na(df$isAff)]
+    warning(paste0(
+      "Individual(s) with unknown affection status (isAff = NA) detected: ID(s) ",
+      paste(na_ids, collapse = ", "),
+      ". Setting age = 0 and likelihood contribution = 1 for these individuals."
+    ))
+  }
+
   # Apply row-wise logic to assign age based on aff column
   df$age <- apply(df, 1, function(row) {
     aff <- as.numeric(row[["isAff"]])
-    if (aff == 1) {
+    if (is.na(aff)) {
+      return(0)  # age = 0 signals likelihood functions to return c(1, 1) for this individual
+    } else if (aff == 1) {
       return(as.numeric(row[["Age"]]))
     } else {
       return(as.numeric(row[["CurAge"]]))

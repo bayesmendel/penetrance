@@ -120,9 +120,13 @@ imputeAges <- function(data, na_indices, baseline_male = NULL, baseline_female =
   data$father <- paste(data$family, data$father, sep = "-") 
   data$individual <- NULL
 
-  # Split indices by affection status
-  affected_indices <- na_indices[data$aff[na_indices] == 1]
-  unaffected_indices <- na_indices[data$aff[na_indices] == 0]
+  # Filter out individuals with NA affection status before splitting.
+  # This covers probands whose aff was set to NA by remove_proband = TRUE,
+  # and any input individuals with isAff = NA (their age is already set to 0
+  # by transformDF() so their likelihood contribution is 1; no imputation needed).
+  valid_na_indices <- na_indices[!is.na(data$aff[na_indices])]
+  affected_indices <- valid_na_indices[data$aff[valid_na_indices] == 1]
+  unaffected_indices <- valid_na_indices[data$aff[valid_na_indices] == 0]
 
   # Calculate empirical density for unaffected individuals
   age_density <- calculateEmpiricalDensity(data, sex_specific = sex_specific)

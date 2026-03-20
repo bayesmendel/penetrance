@@ -128,6 +128,11 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
   if (remove_proband) {
     # Instead of removing probands, set their affection status to NA
     data$aff[proband_indices] <- NA
+    warning(paste0(
+      "remove_proband = TRUE: affection status set to NA for proband(s) at row index/indices ",
+      paste(proband_indices, collapse = ", "),
+      ". Likelihood contribution will be 1 for these individuals."
+    ))
   }
 
   # Initialize variables for sex-specific or non-specific model

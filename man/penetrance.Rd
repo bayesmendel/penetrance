@@ -23,7 +23,7 @@ penetrance(
   thinning_factor = 1,
   imp_interval = 100,
   distribution_data = distribution_data_default,
-  prev = 1e-04,
+  allele_freq = 1e-04,
   sample_size = NULL,
   ratio = NULL,
   prior_params = prior_params_default,
@@ -67,6 +67,7 @@ penetrance(
 
 \item{baseline_data}{Data providing the absolute age-specific baseline risk (probability) of developing the cancer in the general population (e.g., from SEER database).
 All probability values must be between 0 and 1.
+IMPORTANT: This should be AGE-SPECIFIC risk, NOT cumulative risk. The function will warn if the data appears to be cumulative (monotone increasing or sum > 1).
 - If \code{sex_specific = TRUE} (default): A data frame with columns 'Male' and 'Female', where each column contains the age-specific probabilities for that sex. The number of rows should ideally correspond to \code{max_age}.
 - If \code{sex_specific = FALSE}: A numeric vector or a single-column data frame containing the age-specific probabilities for the combined population. The length (or number of rows) should ideally correspond to \code{max_age}.
 Default data is provided for Colorectal cancer from SEER (up to age 94). If the number of rows/length does not match \code{max_age}, the data will be truncated or extended with the last value.}
@@ -89,7 +90,8 @@ Default data is provided for Colorectal cancer from SEER (up to age 94). If the 
 
 \item{distribution_data}{Data for generating prior distributions.}
 
-\item{prev}{Numeric, prevalence of the carrier status. Default is 0.0001.}
+\item{allele_freq}{Numeric, the population allele frequency of the risk variant (p). This will be automatically converted to carrier prevalence (approximately 2p for rare diseases) for internal Bayesian calculations. Default is 0.0001.
+Must be between 0 and 1. The function will warn if the value seems unusually high (> 1\%), which may indicate confusion with carrier prevalence.}
 
 \item{sample_size}{Optional numeric, sample size for distribution generation.}
 

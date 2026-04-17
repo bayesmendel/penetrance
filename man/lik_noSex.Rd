@@ -36,7 +36,7 @@ lik_noSex(
 
 \item{BaselineNC}{Logical, indicates if non-carrier penetrance should be based on SEER data or the calculated non-carrier penetrance.}
 
-\item{prev}{Numeric, prevalence of the risk allele in the population.}
+\item{prev}{Numeric, the carrier prevalence (heterozygote frequency) in the population. This should be approximately 2p where p is the allele frequency for rare diseases.}
 }
 \value{
 Numeric vector, containing likelihood values for unaffected and affected individuals.

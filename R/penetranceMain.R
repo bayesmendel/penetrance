@@ -21,6 +21,7 @@
 #' @param ncores Integer, the number of cores for parallel computation. Default is 6.
 #' @param baseline_data Data providing the absolute age-specific baseline risk (probability) of developing the cancer in the general population (e.g., from SEER database).
 #'                      All probability values must be between 0 and 1.
+#'                      IMPORTANT: This should be AGE-SPECIFIC risk, NOT cumulative risk. The function will warn if the data appears to be cumulative (monotone increasing or sum > 1).
 #'                      - If `sex_specific = TRUE` (default): A data frame with columns 'Male' and 'Female', where each column contains the age-specific probabilities for that sex. The number of rows should ideally correspond to `max_age`.
 #'                      - If `sex_specific = FALSE`: A numeric vector or a single-column data frame containing the age-specific probabilities for the combined population. The length (or number of rows) should ideally correspond to `max_age`.
 #'                      Default data is provided for Colorectal cancer from SEER (up to age 94). If the number of rows/length does not match `max_age`, the data will be truncated or extended with the last value.
@@ -34,7 +35,8 @@
 #' @param thinning_factor Integer, the factor by which to thin the results. Default is 1 (no thinning).
 #' @param imp_interval Integer, the interval at which age imputation should be performed when age_imputation = TRUE.
 #' @param distribution_data Data for generating prior distributions.
-#' @param prev Numeric, prevalence of the carrier status. Default is 0.0001.
+#' @param allele_freq Numeric, the population allele frequency of the risk variant (p). This will be automatically converted to carrier prevalence (approximately 2p for rare diseases) for internal Bayesian calculations. Default is 0.0001.
+#'                    Must be between 0 and 1. The function will warn if the value seems unusually high (> 1%), which may indicate confusion with carrier prevalence.
 #' @param sample_size Optional numeric, sample size for distribution generation.
 #' @param ratio Optional numeric, ratio parameter for distribution generation.
 #' @param prior_params List, parameters for prior distributions.
@@ -127,7 +129,7 @@ penetrance <- function(pedigree,
                        thinning_factor = 1,
                        imp_interval = 100,
                        distribution_data = distribution_data_default,
-                       prev = 0.0001,
+                       allele_freq = 0.0001,
                        sample_size = NULL,
                        ratio = NULL,
                        prior_params = prior_params_default,
@@ -190,9 +192,8 @@ penetrance <- function(pedigree,
     warning(paste("'ncores' (", ncores, ") exceeds the number of available CPU cores (", detected_cores, "). Using ", detected_cores, " cores instead.", sep=""))
     ncores <- detected_cores
   }
-  if (!is.numeric(prev) || length(prev) != 1 || prev < 0 || prev > 1) {
-    stop("Error: 'prev' must be a single numeric value between 0 and 1.")
-  }
+  # Validate allele frequency using the validation function
+  validate_allele_freq(allele_freq, param_name = "allele_freq", warn_threshold = 0.01)
   if (!is.numeric(burn_in) || length(burn_in) != 1 || burn_in < 0 || burn_in >= 1) {
     stop("Error: 'burn_in' must be a single numeric value between 0 (inclusive) and 1 (exclusive).")
   }
@@ -221,6 +222,11 @@ penetrance <- function(pedigree,
   }
   # Add more specific checks for prior_params contents if needed, e.g. prior_params$shape, prior_params$scale
 
+  # Calculate carrier prevalence from allele frequency
+  # For rare diseases, carrier prevalence (heterozygotes) ≈ 2p where p = allele frequency
+  # This is the Hardy-Weinberg equilibrium approximation: 2p(1-p) ≈ 2p when p << 1
+  carrier_prev <- 2 * allele_freq
+  
   # Validate pedigree data structure and content for each pedigree in the list
   required_columns <- c("PedigreeID", "ID", "Sex", "MotherID", "FatherID", "isProband", "CurAge", "isAff", "Age", "Geno")
   for (i in seq_along(pedigree)) {
@@ -324,39 +330,18 @@ penetrance <- function(pedigree,
     pedigree[[i]] <- ped_df 
   }
 
-  # Validate baseline_data structure and values
+  # Validate baseline_data structure and values using validation function
+  validate_baseline_data(baseline_data, sex_specific = sex_specific, param_name = "baseline_data")
+  
+  # Determine data_rows for dimension checking
   if (sex_specific) {
-    if (!is.data.frame(baseline_data)) {
-      stop("Error: 'baseline_data' must be a data frame when 'sex_specific' is TRUE.")
-    }
-    required_bl_columns <- c("Male", "Female")
-    if (!all(required_bl_columns %in% colnames(baseline_data))) {
-      stop("Error: 'baseline_data' must have columns named 'Male' and 'Female' when 'sex_specific' is TRUE.")
-    }
-     if (!all(sapply(baseline_data[, required_bl_columns], is.numeric))) {
-         stop("Error: 'Male' and 'Female' columns in 'baseline_data' must be numeric.")
-     }
-     if (any(baseline_data$Male < 0, na.rm = TRUE) || any(baseline_data$Male > 1, na.rm = TRUE) ||
-         any(baseline_data$Female < 0, na.rm = TRUE) || any(baseline_data$Female > 1, na.rm = TRUE)) {
-         stop("Error: Baseline probabilities in 'baseline_data' must be between 0 and 1.")
-     }
-    # Check if baseline_data matches max_age (warning handled below)
     data_rows <- nrow(baseline_data)
-  } else { # Not sex_specific
+  } else {
     if (is.data.frame(baseline_data)) {
-      if (ncol(baseline_data) != 1) {
-        stop("Error: When 'baseline_data' is a data frame and 'sex_specific' is FALSE, it must have exactly one column.")
-      }
-      bl_vector <- baseline_data[[1]]
-    } else if (is.vector(baseline_data) && is.numeric(baseline_data)) {
-      bl_vector <- baseline_data
+      data_rows <- nrow(baseline_data)
     } else {
-      stop("Error: 'baseline_data' must be a numeric vector or a single-column data frame when 'sex_specific' is FALSE.")
+      data_rows <- length(baseline_data)
     }
-     if (any(bl_vector < 0, na.rm = TRUE) || any(bl_vector > 1, na.rm = TRUE)) {
-         stop("Error: Baseline probabilities in 'baseline_data' must be between 0 and 1.")
-     }
-    data_rows <- length(bl_vector)
   }
   
    # Common baseline_data row check and warning
@@ -404,7 +389,7 @@ penetrance <- function(pedigree,
     "transformDF", "lik.fn", "lik_noSex", "mvrnorm", "var", "calculateEmpiricalDensity", "baseline_data",
     "seeds", "n_iter_per_chain", "burn_in", "imputeAges", "imputeAgesInit",
     "drawBaseline", "calculateNCPen", "drawEmpirical", "imp_interval",
-    "data", "twins", "prop", "prev", "max_age", "BaselineNC", "median_max", "ncores",
+    "data", "twins", "prop", "carrier_prev", "max_age", "BaselineNC", "median_max", "ncores",
     "remove_proband", "sex_specific"
   ), envir = environment())
 
@@ -419,7 +404,7 @@ penetrance <- function(pedigree,
       ncores = ncores,
       prior_distributions = prop,
       max_age = max_age,
-      prev = prev,
+      prev = carrier_prev,
       median_max = median_max,
       baseline_data = baseline_data,
       BaselineNC = BaselineNC,

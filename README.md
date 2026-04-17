@@ -114,7 +114,7 @@ in the correct format with the following columns:
     encoded as `NA` if the individual was not diagnosed. Allowed ages
     range from `1` to `94`. Unknown ages can be left empty or coded as `NA`.
 
--   `geno`: A column for germline testing or tumor marker testing
+-   `Geno`: A column for germline testing or tumor marker testing
     results. Positive results should be coded as `1`, negative results
     as `0`, and unknown results as `NA` or left empty.
 
@@ -134,7 +134,7 @@ approach is run. Available options are:
 #'   - `CurAge`: A numeric value indicating the age of censoring (current age if the person is alive or age at death if the person is deceased). Allowed ages range from `1` to `94`. Unknown ages can be left empty or coded as `NA`. 
 #'   - `isAff`: A numeric value indicating the affection status of cancer, with `1` for diagnosed individuals and `0` otherwise. Missing entries are not supported.
 #'   - `Age`: A numeric value indicating the age of cancer diagnosis, encoded as `NA` if the individual was not diagnosed. Allowed ages range from `1` to `94`. Unknown ages can be left empty or coded as `NA`. 
-#'   - `geno`: A column for germline testing or tumor marker testing results. Positive results should be coded as `1`, negative results as `0`, and unknown results as `NA` or left empty.
+#'   - `Geno`: A column for germline testing or tumor marker testing results. Positive results should be coded as `1`, negative results as `0`, and unknown results as `NA` or left empty.
 #' @param twins A list specifying identical twins or triplets in the family. For example, to indicate that "ora024" and "ora027" are identical twins, and "aey063" and "aey064" are identical twins, use the following format: `twins <- list(c("ora024", "ora027"), c("aey063", "aey064"))`.
 #' @param n_chains Integer, the number of chains for parallel computation. Default is 1.
 #' @param n_iter_per_chain Integer, the number of iterations for each chain. Default is 10000.
@@ -150,7 +150,7 @@ approach is run. Available options are:
 #' @param thinning_factor Integer, the factor by which to thin the results. Default is 1 (no thinning).
 #' @param imp_interval Integer, the interval at which age imputation should be performed when age_imputation = TRUE.
 #' @param distribution_data Data for generating prior distributions.
-#' @param prev Numeric, prevalence of the carrier status. Default is 0.0001.
+#' @param allele_freq Numeric, the population allele frequency of the risk variant (p). This will be automatically converted to carrier prevalence (approximately 2p for rare diseases) for internal Bayesian calculations. Default is 0.0001.
 #' @param sample_size Optional numeric, sample size for distribution generation.
 #' @param ratio Optional numeric, ratio parameter for distribution generation.
 #' @param prior_params List, parameters for prior distributions.
@@ -185,7 +185,7 @@ specification are available:
     reasonable assumption. The baseline_data must be a data frame with
     baseline data for females and males.
 
--   Furthermore the specification of prevalence of the carrier status (`prev`) is required. For rare autosomal dominant conditions, `prevalence = 2 * allele frequency`. 
+-   The specification of allele frequency (`allele_freq`) is required. The function automatically converts this to carrier prevalence using the approximation `carrier_prevalence ≈ 2 * allele_freq` for rare autosomal dominant conditions. 
 
 -   The PenEsim also includes an option for automatic age imputation
     `AgeImputation`. We apply an age imputation as part of the MCMC

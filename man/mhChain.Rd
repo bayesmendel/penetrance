@@ -46,7 +46,7 @@ mhChain(
 
 \item{prior_distributions}{List, containing prior distributions for the parameters being estimated.}
 
-\item{prev}{Numeric, the prevalence of the risk allele in the population.}
+\item{prev}{Numeric, the carrier prevalence (heterozygote frequency) in the population. Note: This is automatically calculated from allele frequency in the main penetrance() function as approximately 2p for rare variants.}
 
 \item{median_max}{Logical, indicates if the maximum median age should be used for the Weibull distribution.}
 

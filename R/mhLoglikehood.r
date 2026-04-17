@@ -1,7 +1,7 @@
 #' Calculate Baseline Risk
 #'
-#' This function extracts the penetrance data for a specified cancer type, gene, race, and penetrance type
-#' from the provided database.
+#' This function extracts the penetrance data for a specified cancer type, gene,
+#' race, and penetrance type from the provided database.
 #'
 #' @param cancer_type The type of cancer for which the risk is being calculated.
 #' @param gene The gene of interest for which the risk is being calculated.
@@ -45,33 +45,47 @@ calculateBaseline <- function(cancer_type, gene, race, type, db) {
 
 #' Calculate Age-Specific Non-Carrier Penetrance
 #'
-#' This function calculates the age-specific non-carrier penetrance based on SEER baseline
-#' data, penetrances for carriers, and allele frequencies. It adjusts penetrance estimates
-#' for genetic testing by incorporating the genetic risk attributable to specified alleles.
+#' This function calculates the age-specific non-carrier penetrance based on 
+#' SEER baseline data, penetrances for carriers, and allele frequencies. It 
+#' adjusts penetrance estimates for genetic testing by incorporating the genetic 
+#' risk attributable to specified alleles.
 #'
-#' @param SEER_baseline Numeric, the baseline penetrance derived from SEER data for the general population without considering genetic risk factors.
-#' @param alpha Numeric, shape parameter for the Weibull distribution used to model carrier risk.
-#' @param beta Numeric, scale parameter for the Weibull distribution used to model carrier risk.
-#' @param delta Numeric, location parameter for the Weibull distribution used to model carrier risk.
-#' @param gamma Numeric, scaling factor applied to the Weibull distribution to adjust carrier risk.
-#' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the population. This should be approximately 2p where p is the allele frequency for rare diseases.
-#' @param max_age Integer, the maximum age up to which the calculations are performed.
+#' @param SEER_baseline Numeric, the baseline penetrance derived from SEER data 
+#' for the general population without considering genetic risk factors.
+#' @param alpha Numeric, shape parameter for the Weibull distribution used to 
+#' model carrier risk.
+#' @param beta Numeric, scale parameter for the Weibull distribution used to 
+#' model carrier risk.
+#' @param delta Numeric, location parameter for the Weibull distribution used to 
+#' model carrier risk.
+#' @param gamma Numeric, scaling factor applied to the Weibull distribution to 
+#' adjust carrier risk.
+#' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the 
+#' population. This should be approximately 2p where p is the allele frequency 
+#' when the allele is rare.
+#' @param max_age Integer, the maximum age up to which the calculations are 
+#' performed.
 #'
 #' @return A list containing:
-#' \item{weightedCarrierRisk}{Numeric vector, the weighted risk for carriers at each age based on prevalence.}
-#' \item{yearlyProb}{Numeric vector, the yearly probability of not getting the disease at each age.}
-#' \item{cumulativeProb}{Numeric vector, the cumulative probability of not getting the disease up to each age.}
+#' \item{weightedCarrierRisk}{Numeric vector, the weighted risk for carriers at 
+#' each age based on prevalence.}
+#' \item{yearlyProb}{Numeric vector, the yearly probability of not getting the 
+#' disease at each age.}
+#' \item{cumulativeProb}{Numeric vector, the cumulative probability of not 
+#' getting the disease up to each age.}
 #'
 #' @export
 calculateNCPen <- function(SEER_baseline, alpha, beta, delta, gamma, prev, max_age) {
   # Calculate probability weights for carriers based on carrier prevalence
-  # Note: prev here is carrier prevalence (heterozygote frequency), not allele frequency
+  # Note: prev here is carrier prevalence (heterozygote frequency), not allele 
+  # frequency
   # In the original HWE formula: weights = 2*p*(1-p) where p = allele frequency
   # Since prev = 2*p (for rare alleles), we have: weights = prev*(1 - prev/2)
-  # For rare diseases where prev is small, this simplifies to approximately prev
+  # For rare alleles where prev is small, this simplifies to approximately prev
   weights <- prev * (1 - prev/2) # Heterozygous carriers only
   
-  # Initialize vectors to store the yearly and cumulative probability of not getting the disease
+  # Initialize vectors to store the yearly and cumulative probability of not 
+  # getting the disease
   weightedCarrierRisk <- numeric(max_age)
   yearlyProb <- numeric(max_age) # For single-year probability
   cumulativeProb <- numeric(max_age) # For cumulative probability
@@ -112,24 +126,34 @@ absValue <- function(x) {
 #' Penetrance Function
 #'
 #' Calculates the penetrance for an individual based on Weibull distribution parameters.
-#' This function estimates the probability of developing cancer given the individual's genetic and demographic information.
+#' This function estimates the probability of developing cancer given the 
+#' individual's genetic and demographic information.
 #'
 #' @param i Integer, index of the individual in the data set.
-#' @param data Data frame, containing individual demographic and genetic information. Must include columns for 'sex', 'age', 'aff' (affection status), and 'geno' (genotype).
+#' @param data Data frame, containing individual demographic and genetic 
+#' information. Must include columns for 'sex', 'age', 'aff' (affection status), 
+#' and 'geno' (genotype).
 #' @param alpha_male Numeric, Weibull distribution shape parameter for males.
 #' @param alpha_female Numeric, Weibull distribution shape parameter for females.
 #' @param beta_male Numeric, Weibull distribution scale parameter for males.
 #' @param beta_female Numeric, Weibull distribution scale parameter for females.
 #' @param delta_male Numeric, shift parameter for the Weibull function for males.
 #' @param delta_female Numeric, shift parameter for the Weibull function for females.
-#' @param gamma_male Numeric, asymptote parameter for males (only scales the entire distribution).
-#' @param gamma_female Numeric, asymptote parameter for females (only scales the entire distribution).
+#' @param gamma_male Numeric, asymptote parameter for males (only scales the 
+#' entire distribution).
+#' @param gamma_female Numeric, asymptote parameter for females (only scales the 
+#' entire distribution).
 #' @param max_age Integer, maximum age considered in the analysis.
-#' @param baselineRisk Numeric matrix, baseline risk for each age by sex. Rows correspond to sex (1 for male, 2 for female) and columns to age.
-#' @param BaselineNC Logical, indicates if non-carrier penetrance should be based on SEER data.
-#' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the population. This should be approximately 2p where p is the allele frequency for rare diseases.
+#' @param baselineRisk Numeric matrix, baseline risk for each age by sex. 
+#' Rows correspond to sex (1 for male, 2 for female) and columns to age.
+#' @param BaselineNC Logical, indicates if non-carrier penetrance should be based 
+#' on SEER data.
+#' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the 
+#' population. This should be approximately 2p where p is the allele frequency 
+#' when the allele is rare.
 #'
-#' @return Numeric vector, containing penetrance values for unaffected and affected individuals.
+#' @return Numeric vector, containing penetrance values for unaffected and 
+#' affected individuals.
 #'
 lik.fn <- function(i, data, alpha_male, alpha_female, beta_male, beta_female,
                    delta_male, delta_female, gamma_male, gamma_female, max_age,
@@ -201,7 +225,9 @@ lik.fn <- function(i, data, alpha_male, alpha_female, beta_male, beta_female,
 #' @param twins Information on monozygous twins
 #' @param max_age Integer, maximum age
 #' @param baseline_data Numeric matrix of baseline risk data
-#' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the population
+#' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the 
+#' population. This should be approximately 2p where p is the allele frequency 
+#' when the allele is rare.
 #' @param geno_freq Numeric vector of frequencies
 #' @param trans Numeric matrix of transmission probabilities
 #' @param BaselineNC Logical for baseline choice
@@ -213,7 +239,7 @@ lik.fn <- function(i, data, alpha_male, alpha_female, beta_male, beta_female,
 #' # Create example parameters and data
 #' paras <- c(0.8, 0.7, 20, 25, 50, 45, 30, 35)  # Example parameters
 #' 
-#' # Create sample data in PanelPRO format
+#' # Create sample data in Fam3PRO format
 #' families <- data.frame(
 #'   ID = 1:10,
 #'   PedigreeID = rep(1, 10),
@@ -300,18 +326,26 @@ mhLogLikelihood_clipp <- function(paras, families, twins, max_age, baseline_data
 
 #' Calculate Log Likelihood without Sex Differentiation
 #'
-#' This function calculates the log likelihood for a set of parameters and data without considering sex differentiation using the clipp package.
+#' This function calculates the log likelihood for a set of parameters and data 
+#' without considering sex differentiation using the clipp package.
 #'
-#' @param paras Numeric vector, the parameters for the Weibull distribution and scaling factors. 
-#'        Should contain in order: gamma, delta, given_median, given_first_quartile.
-#' @param families Data frame, containing pedigree information with columns for 'age', 'aff' (affection status), and 'geno' (genotype).
+#' @param paras Numeric vector, the parameters for the Weibull distribution and 
+#' scaling factors. Should contain in order: gamma, delta, given_median, 
+#' given_first_quartile.
+#' @param families Data frame, containing pedigree information with columns for 
+#' 'age', 'aff' (affection status), and 'geno' (genotype).
 #' @param twins Information on monozygous twins or triplets in the pedigrees.
 #' @param max_age Integer, maximum age considered in the analysis.
 #' @param baseline_data Numeric vector, baseline risk data for each age.
-#' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the population. This should be approximately 2p where p is the allele frequency for rare diseases.
-#' @param geno_freq Numeric vector, represents the frequency of the risk type and its complement in the population.
-#' @param trans Numeric matrix, transition matrix that defines the probabilities of allele transmission from parents to offspring.
-#' @param BaselineNC Logical, indicates if non-carrier penetrance should be based on the baseline data or the calculated non-carrier penetrance.
+#' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the 
+#' population. This should be approximately 2p where p is the allele frequency
+#'when the allele is rare.
+#' @param geno_freq Numeric vector, represents the frequency of the risk type 
+#' and its complement in the population.
+#' @param trans Numeric matrix, transition matrix that defines the probabilities 
+#' of allele transmission from parents to offspring.
+#' @param BaselineNC Logical, indicates if non-carrier penetrance should be based 
+#' on the baseline data or the calculated non-carrier penetrance.
 #' @param ncores Integer, number of cores to use for parallel computation.
 #'
 #' @return Numeric, the calculated log likelihood.
@@ -354,20 +388,26 @@ mhLogLikelihood_clipp_noSex <- function(paras, families, twins, max_age, baselin
 
 #' Likelihood Calculation without Sex Differentiation
 #'
-#' This function calculates the likelihood for an individual based on Weibull distribution parameters without considering sex differentiation.
+#' This function calculates the likelihood for an individual based on Weibull 
+#' distribution parameters without considering sex differentiation.
 #'
 #' @param i Integer, index of the individual in the data set.
-#' @param data Data frame, containing individual demographic and genetic information. Must include columns for 'age', 'aff' (affection status), and 'geno' (genotype).
+#' @param data Data frame, containing individual demographic and genetic information. 
+#' Must include columns for 'age', 'aff' (affection status), and 'geno' (genotype).
 #' @param alpha Numeric, Weibull distribution shape parameter.
 #' @param beta Numeric, Weibull distribution scale parameter.
 #' @param delta Numeric, shift parameter for the Weibull function.
 #' @param gamma Numeric, asymptote parameter (only scales the entire distribution).
 #' @param max_age Integer, maximum age considered in the analysis.
 #' @param baselineRisk Numeric vector, baseline risk for each age.
-#' @param BaselineNC Logical, indicates if non-carrier penetrance should be based on SEER data or the calculated non-carrier penetrance.
-#' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the population. This should be approximately 2p where p is the allele frequency for rare diseases.
+#' @param BaselineNC Logical, indicates if non-carrier penetrance should be 
+#' based on SEER data or the calculated non-carrier penetrance.
+#' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the 
+#' population. This should be approximately 2p where p is the allele frequency 
+#' when the allele is rare.
 #' 
-#' @return Numeric vector, containing likelihood values for unaffected and affected individuals.
+#' @return Numeric vector, containing likelihood values for unaffected and affected 
+#' individuals.
 #'
 lik_noSex <- function(i, data, alpha, beta, delta, gamma, max_age, baselineRisk, BaselineNC, prev) {
   # Check for NA age, affection status, or very young age
@@ -410,7 +450,8 @@ lik_noSex <- function(i, data, alpha, beta, delta, gamma, max_age, baselineRisk,
     }
   }
   
-  # Adjustment for observed genotypes, setting other genotypes to small value to avoid numerical instability
+  # Adjustment for observed genotypes, setting other genotypes to small value to 
+  # avoid numerical instability
   if (data$geno[i] == "1/1") lik.i[-1] <- 1e-8
   if (data$geno[i] == "1/2") lik.i[-2] <- 1e-8
   return(lik.i)

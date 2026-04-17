@@ -1,32 +1,45 @@
 #' Execution of a Single Chain in Metropolis-Hastings for Cancer Risk Estimation
 #'
-#' Performs a single chain execution in the Metropolis-Hastings algorithm for Bayesian inference,
-#' specifically tailored for cancer risk estimation. This function can handle both sex-specific and
-#' non-sex-specific scenarios.
+#' Performs a single chain execution in the Metropolis-Hastings algorithm for 
+#' Bayesian inference, specifically tailored for cancer risk estimation. This 
+#' function can handle both sex-specific and non-sex-specific scenarios.
 #'
-#' @param seed Integer, the seed for the random number generator to ensure reproducibility.
-#' @param n_iter Integer, the number of iterations to perform in the Metropolis-Hastings algorithm.
+#' @param seed Integer, the seed for the random number generator to ensure 
+#' reproducibility.
+#' @param n_iter Integer, the number of iterations to perform in the Metropolis-Hastings 
+#' algorithm.
 #' @param burn_in Integer, the number of initial iterations to discard (burn-in period).
 #' @param chain_id Integer, the identifier for the chain being executed.
 #' @param ncores Integer, the number of cores to use for parallel computation.
-#' @param data Data frame, containing family and genetic information used in the analysis.
+#' @param data Data frame, containing family and genetic information used in the 
+#' analysis.
 #' @param twins Information on monozygous twins or triplets in the pedigrees.
 #' @param max_age Integer, the maximum age considered in the analysis.
-#' @param baseline_data Numeric matrix or vector, containing baseline risk estimates for different ages and sexes.
-#' @param prior_distributions List, containing prior distributions for the parameters being estimated.
-#' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the population. Note: This is automatically calculated from allele frequency in the main penetrance() function as approximately 2p for rare variants.
-#' @param median_max Logical, indicates if the maximum median age should be used for the Weibull distribution.
-#' @param BaselineNC Logical, indicates if non-carrier penetrance should be based on SEER data.
-#' @param var Numeric, the variance for the proposal distribution in the Metropolis-Hastings algorithm.
+#' @param baseline_data Numeric matrix or vector, containing baseline risk estimates 
+#' for different ages and sexes.
+#' @param prior_distributions List, containing prior distributions for the parameters 
+#' being estimated.
+#' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the population. 
+#' Note: This is automatically calculated from allele frequency in the main penetrance() 
+#' function as approximately 2p for rare variants.
+#' @param median_max Logical, indicates if the maximum median age should be used 
+#' for the Weibull distribution.
+#' @param BaselineNC Logical, indicates if non-carrier penetrance should be based 
+#' on SEER data.
+#' @param var Numeric, the variance for the proposal distribution in the Metropolis-Hastings 
+#' algorithm.
 #' @param age_imputation Logical, indicates if age imputation should be performed.
-#' @param imp_interval Integer, the interval at which age imputation should be performed when age_imputation = TRUE.
-#' @param remove_proband Logical, indicates if the proband should be removed from the analysis.
+#' @param imp_interval Integer, the interval at which age imputation should be 
+#' performed when age_imputation = TRUE.
+#' @param remove_proband Logical, indicates if the proband should be removed from 
+#' the analysis.
 #' @param sex_specific Logical, indicates if the analysis should differentiate by sex.
 #'
-#' @return A list containing samples, log likelihoods, log-acceptance ratio, and rejection rate for each iteration.
+#' @return A list containing samples, log likelihoods, log-acceptance ratio, 
+#' and rejection rate for each iteration.
 #'
 #' @examples
-#' # Create sample data in PanelPRO format
+#' # Create sample data in FamPRO format
 #' data <- data.frame(
 #'   ID = 1:10,
 #'   PedigreeID = rep(1, 10),
@@ -117,7 +130,8 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
     #  Extract the NA indices
     na_indices <- init_result$na_indices
   } else {
-    # If age imputation is disabled, set unknown ages to 1 so they are disregarded in likelihood calculation
+    # If age imputation is disabled, set unknown ages to 1 so they are disregarded 
+    # in likelihood calculation
     data$age[is.na(data$age)] <- 1
   }
 
@@ -440,14 +454,16 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
   # Initialize the model
   # geno_freq represents the frequency of the risk type and its complement in the population
   # Note: prev here is carrier prevalence (heterozygote frequency), not allele frequency
-  # It is calculated as approximately 2p in the main penetrance() function for rare diseases
+  # It is calculated as approximately 2p in the main penetrance() function when the allele is rare.
   geno_freq <- c(1 - prev, prev)
 
   # trans is a transition matrix that defines the probabilities of allele transmission from parents to offspring
   # We are assuming that homozygous genotype is not viable
   # Here, the rows correspond to the 4 possible joint parental genotypes and the two columns correspond to the
-  # two possible offspring genotypes. Each number is the conditional probability of the offspring genotype, given the parental genotypes.
-  # The first column corresponds to the wildtype and the second column to the heterozygous carrier (i.e. mutated) for the offspring.
+  # two possible offspring genotypes. Each number is the conditional probability 
+  # of the offspring genotype, given the parental genotypes.
+  # The first column corresponds to the wildtype and the second column to the 
+  # heterozygous carrier (i.e. mutated) for the offspring.
   trans <- matrix(
     c(
       1, 0, # both parents are wild type

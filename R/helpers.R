@@ -88,10 +88,10 @@ validate_weibull_parameters <- function(given_first_quartile, given_median, thre
 
 #' Transform Data Frame
 #'
-#' This function transforms a data frame from the standard format used in PanelPRO
+#' This function transforms a data frame from the standard format used in Fam3PRO
 #' into the required format which conforms to the requirements of penetrance (and clipp).
 #'
-#' @param df The input data frame in the usual PanelPRO format.
+#' @param df The input data frame in the usual Fam3PRO format.
 #'
 #' @return A data frame in the format required for clipp with the following columns:
 #'   \item{individual}{ID of the individual}
@@ -172,7 +172,8 @@ transformDF <- function(df) {
     df$geno <- ifelse(is.na(df$Geno), "", ifelse(df$Geno == 1, "1/2", ifelse(df$Geno == 0, "1/1", df$Geno)))
   } else {
     # Handle case where 'Geno' column is not present
-    warning("'Geno' column not found in the input data frame. 'geno' column in output will be empty.")
+    warning("'Geno' column not found in the input data frame. 'geno' column in 
+            output will be empty.")
     df$geno <- ""
   }
   
@@ -188,11 +189,15 @@ transformDF <- function(df) {
 #' Allele frequencies must be numeric, scalar, and within the range [0, 1].
 #' The function also provides warnings for edge cases and common mistakes.
 #'
-#' @param allele_freq The allele frequency value to validate. Should be a numeric value between 0 and 1.
-#' @param param_name Character string specifying the parameter name (for error messages). Default is "allele_freq".
-#' @param warn_threshold Numeric value above which to issue a warning about unusually high allele frequency. Default is 0.01 (1%).
+#' @param allele_freq The allele frequency value to validate. Should be a numeric 
+#' value between 0 and 1.
+#' @param param_name Character string specifying the parameter name (for error 
+#' messages). Default is "allele_freq".
+#' @param warn_threshold Numeric value above which to issue a warning about unusually 
+#' high allele frequency. Default is 0.01 (1%).
 #'
-#' @return Logical value TRUE if the allele frequency is valid, otherwise stops with an error message.
+#' @return Logical value TRUE if the allele frequency is valid, otherwise stops 
+#' with an error message.
 #'
 #' @details
 #' The function checks:
@@ -200,7 +205,8 @@ transformDF <- function(df) {
 #'   \item{Whether the input is numeric}
 #'   \item{Whether the input is a single value (not a vector)}
 #'   \item{Whether the value is between 0 and 1 (inclusive)}
-#'   \item{Whether the value is unusually high (> warn_threshold), which may indicate the user provided carrier prevalence instead of allele frequency}
+#'   \item{Whether the value is unusually high (> warn_threshold), which may indicate 
+#'   the user provided carrier prevalence instead of allele frequency}
 #'   \item{Whether the value is exactly 0 or 1, which may not be biologically meaningful}
 #' }
 #'
@@ -266,20 +272,20 @@ validate_allele_freq <- function(allele_freq, param_name = "allele_freq", warn_t
   if (allele_freq == 0) {
     warning(paste0("Warning: '", param_name, "' is exactly 0. ",
                    "This implies the allele does not exist in the population, which may not be biologically meaningful. ",
-                   "Consider if this is the intended value."))
+                   "Consider whether this is the intended value."))
   }
   
   # Warning for edge case: exactly 1
   if (allele_freq == 1) {
     warning(paste0("Warning: '", param_name, "' is exactly 1 (100%). ",
                    "This implies the allele is fixed in the population (all individuals carry it), which may not be biologically meaningful. ",
-                   "Consider if this is the intended value."))
+                   "Consider whether this is the intended value."))
   }
   
   # Warning for unusually high allele frequency
   if (allele_freq > warn_threshold && allele_freq < 1) {
     warning(paste0("Warning: '", param_name, "' is ", allele_freq, " (", allele_freq * 100, "%), which is relatively high for a disease-associated variant. ",
-                   "Please verify this is the allele frequency (p) and not the carrier prevalence (approximately 2p). ",
+                   "Please verify that this is the allele frequency (p) and not the carrier prevalence (approximately 2p). ",
                    "For example, if the carrier prevalence is 2%, the allele frequency should be approximately 1% (0.01)."))
   }
   
@@ -297,26 +303,33 @@ validate_allele_freq <- function(allele_freq, param_name = "allele_freq", warn_t
 #'   - A data frame with 'Male' and 'Female' columns (when sex_specific = TRUE)
 #'   - A numeric vector (when sex_specific = FALSE)
 #'   - A single-column data frame (when sex_specific = FALSE)
-#' @param sex_specific Logical, indicating whether the data is sex-specific. Default is TRUE.
-#' @param param_name Character string specifying the parameter name (for messages). Default is "baseline_data".
-#' @param tolerance Numeric value for checking strict monotonicity (to account for floating point precision). Default is 1e-10.
+#' @param sex_specific Logical, indicating whether the data is sex-specific. 
+#' Default is TRUE.
+#' @param param_name Character string specifying the parameter name (for messages). 
+#' Default is "baseline_data".
+#' @param tolerance Numeric value for checking strict monotonicity (to account for 
+#' floating point precision). Default is 1e-10.
 #'
-#' @return Logical value TRUE if validation passes (with possible warnings), otherwise stops with an error.
+#' @return Logical value TRUE if validation passes (with possible warnings), 
+#' otherwise stops with an error.
 #'
 #' @details
 #' The function performs the following checks:
 #' \itemize{
-#'   \item{For monotonicity: If values are strictly non-decreasing (monotone increasing), this suggests
-#'         cumulative risk rather than age-specific probabilities. A warning is issued.}
-#'   \item{For sum > 1: If the sum of all probabilities exceeds 1, this is problematic because
-#'         these should be age-specific probabilities. A warning is issued.}
+#'   \item{For monotonicity: If values are strictly non-decreasing (monotonically 
+#'   increasing), this suggests cumulative risk rather than age-specific probabilities. 
+#'   A warning is issued.}
+#'   \item{For sum > 1: If the sum of all probabilities exceeds 1, this is 
+#'   problematic because these should be age-specific probabilities. A warning is 
+#'   issued.}
 #'   \item{Individual values must be between 0 and 1 (probabilities)}
 #'   \item{No NA or infinite values are allowed}
 #' }
 #'
-#' Age-specific baseline risk represents the probability of developing disease at each specific age,
-#' while cumulative risk represents the total probability up to that age. For proper penetrance
-#' estimation, age-specific (not cumulative) risk should be used.
+#' Age-specific baseline risk represents the probability of developing disease at 
+#' each specific age, while cumulative risk represents the total probability up 
+#' to that age. For proper penetrance estimation, age-specific (not cumulative) 
+#' risk should be used.
 #'
 #' @examples
 #' # Valid age-specific data (varies, not monotone)

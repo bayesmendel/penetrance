@@ -4,55 +4,109 @@
 #' penetrance estimation of cancer risk. It utilizes parallel computing to run multiple
 #' chains and provides various options for analyzing and visualizing the results.
 #'
-#' @param pedigree A list of data frames, where each data frame represents a single pedigree and contains the following columns:
-#'   - `PedigreeID`: A numeric or character identifier for the family/pedigree. Must be consistent for all members of the same family within a data frame.
-#'   - `ID`: A unique numeric or character identifier for each individual within their respective pedigree data frame.
-#'   - `Sex`: An integer representing biological sex: `0` for female, `1` for male. Use `NA` for unknown sex.
-#'   - `MotherID`: The `ID` of the individual's mother. Should correspond to an `ID` within the same pedigree data frame or be `NA` if the mother is not in the pedigree (founder).
-#'   - `FatherID`: The `ID` of the individual's father. Should correspond to an `ID` within the same pedigree data frame or be `NA` if the father is not in the pedigree (founder).
-#'   - `isProband`: An integer indicating if the individual is a proband: `1` for proband, `0` otherwise.
-#'   - `CurAge`: An integer representing the age of censoring. This is the current age if the individual is alive, or the age at death if deceased. Must be between `1` and `max_age`. Use `NA` for unknown ages (but note this may affect analysis or require imputation).
-#'   - `isAff`: An integer indicating the affection status for the cancer of interest: `1` if diagnosed, `0` if unaffected. Use `NA` for unknown status.
-#'   - `Age`: An integer representing the age at cancer diagnosis. Should be `NA` if `isAff` is `0` or `NA`. Must be between `1` and `max_age`, and less than or equal to `CurAge`. Use `NA` for unknown diagnosis age (but note this may affect analysis or require imputation).
-#'   - `Geno`: An integer representing the germline genetic test result: `1` for carrier (positive), `0` for non-carrier (negative). Use `NA` for unknown or untested individuals.
-#' @param twins A list specifying identical twins or triplets in the family. Each element of the list should be a vector containing the `ID`s of the identical siblings within a pedigree. For example: `list(c("ID1", "ID2"), c("ID3", "ID4", "ID5"))`. Default is `NULL`.
-#' @param n_chains Integer, the number of chains for parallel computation. Default is 1.
-#' @param n_iter_per_chain Integer, the number of iterations for each chain. Default is 10000.
-#' @param ncores Integer, the number of cores for parallel computation. Default is 6.
-#' @param baseline_data Data providing the absolute age-specific baseline risk (probability) of developing the cancer in the general population (e.g., from SEER database).
-#'                      All probability values must be between 0 and 1.
-#'                      IMPORTANT: This should be AGE-SPECIFIC risk, NOT cumulative risk. The function will warn if the data appears to be cumulative (monotone increasing or sum > 1).
-#'                      - If `sex_specific = TRUE` (default): A data frame with columns 'Male' and 'Female', where each column contains the age-specific probabilities for that sex. The number of rows should ideally correspond to `max_age`.
-#'                      - If `sex_specific = FALSE`: A numeric vector or a single-column data frame containing the age-specific probabilities for the combined population. The length (or number of rows) should ideally correspond to `max_age`.
-#'                      Default data is provided for Colorectal cancer from SEER (up to age 94). If the number of rows/length does not match `max_age`, the data will be truncated or extended with the last value.
+#' @param pedigree A list of data frames, where each data frame represents a 
+#' single pedigree and contains the following columns:
+#'   - `PedigreeID`: A numeric or character identifier for the family/pedigree. 
+#'   Must be consistent for all members of the same family within a data frame.
+#'   - `ID`: A unique numeric or character identifier for each individual within 
+#'   their respective pedigree data frame.
+#'   - `Sex`: An integer representing biological sex: `0` for female, `1` for male. 
+#'   Use `NA` for unknown sex.
+#'   - `MotherID`: The `ID` of the individual's mother. Should correspond to an 
+#'   `ID` within the same pedigree data frame or be `NA` if the mother is not in the pedigree (founder).
+#'   - `FatherID`: The `ID` of the individual's father. Should correspond to an 
+#'   `ID` within the same pedigree data frame or be `NA` if the father is not in the pedigree (founder).
+#'   - `isProband`: An integer indicating if the individual is a proband: `1` for 
+#'   proband, `0` otherwise.
+#'   - `CurAge`: An integer representing the age of censoring. This is the current 
+#'   age if the individual is alive, or the age at death if deceased. Must be 
+#'   between `1` and `max_age`. Use `NA` for unknown ages (but note this may affect 
+#'   analysis or require imputation).
+#'   - `isAff`: An integer indicating the affection status for the cancer of 
+#'   interest: `1` if diagnosed, `0` if unaffected. Use `NA` for unknown status.
+#'   - `Age`: An integer representing the age at cancer diagnosis. Should be 
+#'   `NA` if `isAff` is `0` or `NA`. Must be between `1` and `max_age`, and less 
+#'   than or equal to `CurAge`. Use `NA` for unknown diagnosis age (but note this
+#'    may affect analysis or require imputation).
+#'   - `Geno`: An integer representing the germline genetic test result: `1` for 
+#'   carrier (positive), `0` for non-carrier (negative). Use `NA` for unknown or 
+#'   untested individuals.
+#' @param twins A list specifying identical twins or triplets in the family. Each 
+#' element of the list should be a vector containing the `ID`s of the identical 
+#' siblings within a pedigree. For example: `list(c("ID1", "ID2"), c("ID3", "ID4", "ID5"))`. 
+#' Default is `NULL`.
+#' @param n_chains Integer, the number of chains for parallel computation. 
+#' Default is 1.
+#' @param n_iter_per_chain Integer, the number of iterations for each chain. 
+#' Default is 10000.
+#' @param ncores Integer, the number of cores for parallel computation. 
+#' Default is 6.
+#' @param baseline_data Data providing the absolute age-specific baseline risk 
+#' (probability) of developing the cancer in the general population (e.g., from 
+#' SEER database). All probability values must be between 0 and 1. IMPORTANT: This 
+#' should be AGE-SPECIFIC risk, NOT cumulative risk. The function will warn if the 
+#' data appears to be cumulative (monotonically increasing or sum > 1).
+#'                      - If `sex_specific = TRUE` (default): A data frame with columns 
+#'                   'Male' and 'Female', where each column contains the age-specific 
+#'                   probabilities for that sex. The number of rows should ideally 
+#'                   correspond to`max_age`.
+#'                      - If `sex_specific = FALSE`: A numeric vector or a single-column 
+#'                      data frame containing the age-specific probabilities for 
+#'                      the combined population. The length (or number of rows) 
+#'                      should ideally correspond to `max_age`.
+#' Default data is provided for Colorectal cancer from SEER (up to age 94). If the 
+#' number of rows/length does not match `max_age`, the data will be truncated or 
+#' extended with the last value.
 #' @param max_age Integer, the maximum age considered for analysis. Default is 94.
-#' @param remove_proband Logical, indicating whether to remove probands from the analysis. Default is FALSE.
-#' @param age_imputation Logical, indicating whether to perform age imputation. Default is FALSE.
-#' @param median_max Logical, indicating whether to use the baseline median age or `max_age` as an upper bound for the median proposal. Default is TRUE.
-#' @param BaselineNC Logical, indicating that the non-carrier penetrance is assumed to be the baseline penetrance. Default is TRUE.
-#' @param var Numeric vector, variances for the proposal distribution in the Metropolis-Hastings algorithm. Default is `c(0.1, 0.1, 2, 2, 5, 5, 5, 5)`.
-#' @param burn_in Numeric, the fraction of results to discard as burn-in (0 to 1). Default is 0 (no burn-in).
-#' @param thinning_factor Integer, the factor by which to thin the results. Default is 1 (no thinning).
-#' @param imp_interval Integer, the interval at which age imputation should be performed when age_imputation = TRUE.
+#' @param remove_proband Logical, indicating whether to remove probands from the 
+#' analysis. Default is FALSE.
+#' @param age_imputation Logical, indicating whether to perform age imputation. 
+#' Default is FALSE.
+#' @param median_max Logical, indicating whether to use the baseline median age 
+#' or `max_age` as an upper bound for the median proposal. Default is TRUE.
+#' @param BaselineNC Logical, indicating that the non-carrier penetrance is assumed 
+#' to be the baseline penetrance. Default is TRUE.
+#' @param var Numeric vector, variances for the proposal distribution in the 
+#' Metropolis-Hastings algorithm. Default is `c(0.1, 0.1, 2, 2, 5, 5, 5, 5)`.
+#' @param burn_in Numeric, the fraction of results to discard as burn-in (0 to 1). 
+#' Default is 0 (no burn-in).
+#' @param thinning_factor Integer, the factor by which to thin the results. 
+#' Default is 1 (no thinning).
+#' @param imp_interval Integer, the interval at which age imputation should be 
+#' performed when age_imputation = TRUE.
 #' @param distribution_data Data for generating prior distributions.
-#' @param allele_freq Numeric, the population allele frequency of the risk variant (p). This will be automatically converted to carrier prevalence (approximately 2p for rare diseases) for internal Bayesian calculations. Default is 0.0001.
-#'                    Must be between 0 and 1. The function will warn if the value seems unusually high (> 1%), which may indicate confusion with carrier prevalence.
+#' @param allele_freq Numeric, the population allele frequency of the risk variant (p). 
+#' This will be automatically converted to carrier prevalence (approximately 2p for 
+#' rare alleles) for internal Bayesian calculations. Default is 0.0001.
+#' Must be between 0 and 1. The function will warn if the value seems unusually 
+#' high (> 1%), which may indicate confusion with carrier prevalence.
 #' @param sample_size Optional numeric, sample size for distribution generation.
 #' @param ratio Optional numeric, ratio parameter for distribution generation.
 #' @param prior_params List, parameters for prior distributions.
 #' @param risk_proportion Numeric, proportion of risk for distribution generation.
-#' @param summary_stats Logical, indicating whether to include summary statistics in the output. Default is TRUE.
-#' @param rejection_rates Logical, indicating whether to include rejection rates in the output. Default is TRUE.
-#' @param density_plots Logical, indicating whether to include density plots in the output. Default is TRUE.
-#' @param plot_trace Logical, indicating whether to include trace plots in the output. Default is TRUE.
-#' @param penetrance_plot Logical, indicating whether to include penetrance plots in the output. Default is TRUE.
-#' @param penetrance_plot_pdf Logical, indicating whether to include PDF plots in the output. Default is TRUE.
-#' @param plot_loglikelihood Logical, indicating whether to include log-likelihood plots in the output. Default is TRUE.
-#' @param plot_acf Logical, indicating whether to include autocorrelation function (ACF) plots for posterior samples. Default is TRUE.
-#' @param probCI Numeric, probability level for credible intervals in penetrance plots. Must be between 0 and 1. Default is 0.95.
-#' @param sex_specific Logical, indicating whether to use sex-specific parameters in the analysis. Default is TRUE.
+#' @param summary_stats Logical, indicating whether to include summary statistics 
+#' in the output. Default is TRUE.
+#' @param rejection_rates Logical, indicating whether to include rejection rates 
+#' in the output. Default is TRUE.
+#' @param density_plots Logical, indicating whether to include density plots in 
+#' the output. Default is TRUE.
+#' @param plot_trace Logical, indicating whether to include trace plots in the 
+#' output. Default is TRUE.
+#' @param penetrance_plot Logical, indicating whether to include penetrance plots 
+#' in the output. Default is TRUE.
+#' @param penetrance_plot_pdf Logical, indicating whether to include PDF plots 
+#' in the output. Default is TRUE.
+#' @param plot_loglikelihood Logical, indicating whether to include log-likelihood 
+#' plots in the output. Default is TRUE.
+#' @param plot_acf Logical, indicating whether to include autocorrelation function (ACF) 
+#' plots for posterior samples. Default is TRUE.
+#' @param probCI Numeric, probability level for credible intervals in penetrance 
+#' plots. Must be between 0 and 1. Default is 0.95.
+#' @param sex_specific Logical, indicating whether to use sex-specific parameters 
+#' in the analysis. Default is TRUE.
 #'
-#' @return A list containing combined results from all chains, including optional statistics and plots.
+#' @return A list containing combined results from all chains, including optional 
+#' statistics and plots.
 #'
 #' @importFrom stats rbeta runif
 #' @importFrom parallel makeCluster stopCluster parLapply
@@ -223,7 +277,7 @@ penetrance <- function(pedigree,
   # Add more specific checks for prior_params contents if needed, e.g. prior_params$shape, prior_params$scale
 
   # Calculate carrier prevalence from allele frequency
-  # For rare diseases, carrier prevalence (heterozygotes) ≈ 2p where p = allele frequency
+  # For rare alleles, carrier prevalence (heterozygotes) ≈ 2p where p = allele frequency
   # This is the Hardy-Weinberg equilibrium approximation: 2p(1-p) ≈ 2p when p << 1
   carrier_prev <- 2 * allele_freq
   

@@ -1,8 +1,21 @@
-.Rproj.user
+# R / RStudio session and user-local files
+.Rproj.user/
 .Rhistory
 .RData
 .Ruserdata
+.Rapp.history
+.RDataTmp
+.Renviron
+.Renviron.site
+.Rprofile
+.Rprofile.site
+
+# OS-specific metadata
 .DS_Store
+Thumbs.db
+
+# R package build artifacts
 /doc/
 /Meta/
 docs
+*.Rcheck/

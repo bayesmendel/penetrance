@@ -18,10 +18,12 @@ mhLogLikelihood_clipp_noSex(
 )
 }
 \arguments{
-\item{paras}{Numeric vector, the parameters for the Weibull distribution and scaling factors.
-Should contain in order: gamma, delta, given_median, given_first_quartile.}
+\item{paras}{Numeric vector, the parameters for the Weibull distribution and
+scaling factors. Should contain in order: gamma, delta, given_median,
+given_first_quartile.}
 
-\item{families}{Data frame, containing pedigree information with columns for 'age', 'aff' (affection status), and 'geno' (genotype).}
+\item{families}{Data frame, containing pedigree information with columns for
+'age', 'aff' (affection status), and 'geno' (genotype).}
 
 \item{twins}{Information on monozygous twins or triplets in the pedigrees.}
 
@@ -29,13 +31,18 @@ Should contain in order: gamma, delta, given_median, given_first_quartile.}
 
 \item{baseline_data}{Numeric vector, baseline risk data for each age.}
 
-\item{prev}{Numeric, the carrier prevalence (heterozygote frequency) in the population. This should be approximately 2p where p is the allele frequency for rare diseases.}
+\item{prev}{Numeric, the carrier prevalence (heterozygote frequency) in the
+population. This should be approximately 2p where p is the allele frequency
+when the allele is rare.}
 
-\item{geno_freq}{Numeric vector, represents the frequency of the risk type and its complement in the population.}
+\item{geno_freq}{Numeric vector, represents the frequency of the risk type
+and its complement in the population.}
 
-\item{trans}{Numeric matrix, transition matrix that defines the probabilities of allele transmission from parents to offspring.}
+\item{trans}{Numeric matrix, transition matrix that defines the probabilities
+of allele transmission from parents to offspring.}
 
-\item{BaselineNC}{Logical, indicates if non-carrier penetrance should be based on the baseline data or the calculated non-carrier penetrance.}
+\item{BaselineNC}{Logical, indicates if non-carrier penetrance should be based
+on the baseline data or the calculated non-carrier penetrance.}
 
 \item{ncores}{Integer, number of cores to use for parallel computation.}
 }
@@ -43,7 +50,8 @@ Should contain in order: gamma, delta, given_median, given_first_quartile.}
 Numeric, the calculated log likelihood.
 }
 \description{
-This function calculates the log likelihood for a set of parameters and data without considering sex differentiation using the clipp package.
+This function calculates the log likelihood for a set of parameters and data
+without considering sex differentiation using the clipp package.
 }
 \references{
 Details about the clipp package and methods can be found in the package documentation.

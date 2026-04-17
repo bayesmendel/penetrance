@@ -20,7 +20,8 @@ lik_noSex(
 \arguments{
 \item{i}{Integer, index of the individual in the data set.}
 
-\item{data}{Data frame, containing individual demographic and genetic information. Must include columns for 'age', 'aff' (affection status), and 'geno' (genotype).}
+\item{data}{Data frame, containing individual demographic and genetic information.
+Must include columns for 'age', 'aff' (affection status), and 'geno' (genotype).}
 
 \item{alpha}{Numeric, Weibull distribution shape parameter.}
 
@@ -34,13 +35,18 @@ lik_noSex(
 
 \item{baselineRisk}{Numeric vector, baseline risk for each age.}
 
-\item{BaselineNC}{Logical, indicates if non-carrier penetrance should be based on SEER data or the calculated non-carrier penetrance.}
+\item{BaselineNC}{Logical, indicates if non-carrier penetrance should be
+based on SEER data or the calculated non-carrier penetrance.}
 
-\item{prev}{Numeric, the carrier prevalence (heterozygote frequency) in the population. This should be approximately 2p where p is the allele frequency for rare diseases.}
+\item{prev}{Numeric, the carrier prevalence (heterozygote frequency) in the
+population. This should be approximately 2p where p is the allele frequency
+when the allele is rare.}
 }
 \value{
-Numeric vector, containing likelihood values for unaffected and affected individuals.
+Numeric vector, containing likelihood values for unaffected and affected
+individuals.
 }
 \description{
-This function calculates the likelihood for an individual based on Weibull distribution parameters without considering sex differentiation.
+This function calculates the likelihood for an individual based on Weibull
+distribution parameters without considering sex differentiation.
 }

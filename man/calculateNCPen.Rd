@@ -7,28 +7,40 @@
 calculateNCPen(SEER_baseline, alpha, beta, delta, gamma, prev, max_age)
 }
 \arguments{
-\item{SEER_baseline}{Numeric, the baseline penetrance derived from SEER data for the general population without considering genetic risk factors.}
+\item{SEER_baseline}{Numeric, the baseline penetrance derived from SEER data
+for the general population without considering genetic risk factors.}
 
-\item{alpha}{Numeric, shape parameter for the Weibull distribution used to model carrier risk.}
+\item{alpha}{Numeric, shape parameter for the Weibull distribution used to
+model carrier risk.}
 
-\item{beta}{Numeric, scale parameter for the Weibull distribution used to model carrier risk.}
+\item{beta}{Numeric, scale parameter for the Weibull distribution used to
+model carrier risk.}
 
-\item{delta}{Numeric, location parameter for the Weibull distribution used to model carrier risk.}
+\item{delta}{Numeric, location parameter for the Weibull distribution used to
+model carrier risk.}
 
-\item{gamma}{Numeric, scaling factor applied to the Weibull distribution to adjust carrier risk.}
+\item{gamma}{Numeric, scaling factor applied to the Weibull distribution to
+adjust carrier risk.}
 
-\item{prev}{Numeric, the carrier prevalence (heterozygote frequency) in the population. This should be approximately 2p where p is the allele frequency for rare diseases.}
+\item{prev}{Numeric, the carrier prevalence (heterozygote frequency) in the
+population. This should be approximately 2p where p is the allele frequency
+when the allele is rare.}
 
-\item{max_age}{Integer, the maximum age up to which the calculations are performed.}
+\item{max_age}{Integer, the maximum age up to which the calculations are
+performed.}
 }
 \value{
 A list containing:
-\item{weightedCarrierRisk}{Numeric vector, the weighted risk for carriers at each age based on prevalence.}
-\item{yearlyProb}{Numeric vector, the yearly probability of not getting the disease at each age.}
-\item{cumulativeProb}{Numeric vector, the cumulative probability of not getting the disease up to each age.}
+\item{weightedCarrierRisk}{Numeric vector, the weighted risk for carriers at
+each age based on prevalence.}
+\item{yearlyProb}{Numeric vector, the yearly probability of not getting the
+disease at each age.}
+\item{cumulativeProb}{Numeric vector, the cumulative probability of not
+getting the disease up to each age.}
 }
 \description{
-This function calculates the age-specific non-carrier penetrance based on SEER baseline
-data, penetrances for carriers, and allele frequencies. It adjusts penetrance estimates
-for genetic testing by incorporating the genetic risk attributable to specified alleles.
+This function calculates the age-specific non-carrier penetrance based on
+SEER baseline data, penetrances for carriers, and allele frequencies. It
+adjusts penetrance estimates for genetic testing by incorporating the genetic
+risk attributable to specified alleles.
 }

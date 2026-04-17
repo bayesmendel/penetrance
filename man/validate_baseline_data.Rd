@@ -19,14 +19,18 @@ validate_baseline_data(
 \item A single-column data frame (when sex_specific = FALSE)
 }}
 
-\item{sex_specific}{Logical, indicating whether the data is sex-specific. Default is TRUE.}
+\item{sex_specific}{Logical, indicating whether the data is sex-specific.
+Default is TRUE.}
 
-\item{param_name}{Character string specifying the parameter name (for messages). Default is "baseline_data".}
+\item{param_name}{Character string specifying the parameter name (for messages).
+Default is "baseline_data".}
 
-\item{tolerance}{Numeric value for checking strict monotonicity (to account for floating point precision). Default is 1e-10.}
+\item{tolerance}{Numeric value for checking strict monotonicity (to account for
+floating point precision). Default is 1e-10.}
 }
 \value{
-Logical value TRUE if validation passes (with possible warnings), otherwise stops with an error.
+Logical value TRUE if validation passes (with possible warnings),
+otherwise stops with an error.
 }
 \description{
 This function validates baseline penetrance data to ensure it represents age-specific
@@ -37,17 +41,20 @@ age-specific.
 \details{
 The function performs the following checks:
 \itemize{
-\item{For monotonicity: If values are strictly non-decreasing (monotone increasing), this suggests
-cumulative risk rather than age-specific probabilities. A warning is issued.}
-\item{For sum > 1: If the sum of all probabilities exceeds 1, this is problematic because
-these should be age-specific probabilities. A warning is issued.}
+\item{For monotonicity: If values are strictly non-decreasing (monotonically
+increasing), this suggests cumulative risk rather than age-specific probabilities.
+A warning is issued.}
+\item{For sum > 1: If the sum of all probabilities exceeds 1, this is
+problematic because these should be age-specific probabilities. A warning is
+issued.}
 \item{Individual values must be between 0 and 1 (probabilities)}
 \item{No NA or infinite values are allowed}
 }
 
-Age-specific baseline risk represents the probability of developing disease at each specific age,
-while cumulative risk represents the total probability up to that age. For proper penetrance
-estimation, age-specific (not cumulative) risk should be used.
+Age-specific baseline risk represents the probability of developing disease at
+each specific age, while cumulative risk represents the total probability up
+to that age. For proper penetrance estimation, age-specific (not cumulative)
+risk should be used.
 }
 \examples{
 # Valid age-specific data (varies, not monotone)

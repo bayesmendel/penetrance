@@ -21,6 +21,6 @@ calculateBaseline(cancer_type, gene, race, type, db)
 A matrix of penetrance data for the specified parameters.
 }
 \description{
-This function extracts the penetrance data for a specified cancer type, gene, race, and penetrance type
-from the provided database.
+This function extracts the penetrance data for a specified cancer type, gene,
+race, and penetrance type from the provided database.
 }

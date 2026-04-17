@@ -41,57 +41,100 @@ penetrance(
 )
 }
 \arguments{
-\item{pedigree}{A list of data frames, where each data frame represents a single pedigree and contains the following columns:
+\item{pedigree}{A list of data frames, where each data frame represents a
+single pedigree and contains the following columns:
 \itemize{
-\item \code{PedigreeID}: A numeric or character identifier for the family/pedigree. Must be consistent for all members of the same family within a data frame.
-\item \code{ID}: A unique numeric or character identifier for each individual within their respective pedigree data frame.
-\item \code{Sex}: An integer representing biological sex: \code{0} for female, \code{1} for male. Use \code{NA} for unknown sex.
-\item \code{MotherID}: The \code{ID} of the individual's mother. Should correspond to an \code{ID} within the same pedigree data frame or be \code{NA} if the mother is not in the pedigree (founder).
-\item \code{FatherID}: The \code{ID} of the individual's father. Should correspond to an \code{ID} within the same pedigree data frame or be \code{NA} if the father is not in the pedigree (founder).
-\item \code{isProband}: An integer indicating if the individual is a proband: \code{1} for proband, \code{0} otherwise.
-\item \code{CurAge}: An integer representing the age of censoring. This is the current age if the individual is alive, or the age at death if deceased. Must be between \code{1} and \code{max_age}. Use \code{NA} for unknown ages (but note this may affect analysis or require imputation).
-\item \code{isAff}: An integer indicating the affection status for the cancer of interest: \code{1} if diagnosed, \code{0} if unaffected. Use \code{NA} for unknown status.
-\item \code{Age}: An integer representing the age at cancer diagnosis. Should be \code{NA} if \code{isAff} is \code{0} or \code{NA}. Must be between \code{1} and \code{max_age}, and less than or equal to \code{CurAge}. Use \code{NA} for unknown diagnosis age (but note this may affect analysis or require imputation).
-\item \code{Geno}: An integer representing the germline genetic test result: \code{1} for carrier (positive), \code{0} for non-carrier (negative). Use \code{NA} for unknown or untested individuals.
+\item \code{PedigreeID}: A numeric or character identifier for the family/pedigree.
+Must be consistent for all members of the same family within a data frame.
+\item \code{ID}: A unique numeric or character identifier for each individual within
+their respective pedigree data frame.
+\item \code{Sex}: An integer representing biological sex: \code{0} for female, \code{1} for male.
+Use \code{NA} for unknown sex.
+\item \code{MotherID}: The \code{ID} of the individual's mother. Should correspond to an
+\code{ID} within the same pedigree data frame or be \code{NA} if the mother is not in the pedigree (founder).
+\item \code{FatherID}: The \code{ID} of the individual's father. Should correspond to an
+\code{ID} within the same pedigree data frame or be \code{NA} if the father is not in the pedigree (founder).
+\item \code{isProband}: An integer indicating if the individual is a proband: \code{1} for
+proband, \code{0} otherwise.
+\item \code{CurAge}: An integer representing the age of censoring. This is the current
+age if the individual is alive, or the age at death if deceased. Must be
+between \code{1} and \code{max_age}. Use \code{NA} for unknown ages (but note this may affect
+analysis or require imputation).
+\item \code{isAff}: An integer indicating the affection status for the cancer of
+interest: \code{1} if diagnosed, \code{0} if unaffected. Use \code{NA} for unknown status.
+\item \code{Age}: An integer representing the age at cancer diagnosis. Should be
+\code{NA} if \code{isAff} is \code{0} or \code{NA}. Must be between \code{1} and \code{max_age}, and less
+than or equal to \code{CurAge}. Use \code{NA} for unknown diagnosis age (but note this
+may affect analysis or require imputation).
+\item \code{Geno}: An integer representing the germline genetic test result: \code{1} for
+carrier (positive), \code{0} for non-carrier (negative). Use \code{NA} for unknown or
+untested individuals.
 }}
 
-\item{twins}{A list specifying identical twins or triplets in the family. Each element of the list should be a vector containing the \code{ID}s of the identical siblings within a pedigree. For example: \code{list(c("ID1", "ID2"), c("ID3", "ID4", "ID5"))}. Default is \code{NULL}.}
+\item{twins}{A list specifying identical twins or triplets in the family. Each
+element of the list should be a vector containing the \code{ID}s of the identical
+siblings within a pedigree. For example: \code{list(c("ID1", "ID2"), c("ID3", "ID4", "ID5"))}.
+Default is \code{NULL}.}
 
-\item{n_chains}{Integer, the number of chains for parallel computation. Default is 1.}
+\item{n_chains}{Integer, the number of chains for parallel computation.
+Default is 1.}
 
-\item{n_iter_per_chain}{Integer, the number of iterations for each chain. Default is 10000.}
+\item{n_iter_per_chain}{Integer, the number of iterations for each chain.
+Default is 10000.}
 
-\item{ncores}{Integer, the number of cores for parallel computation. Default is 6.}
+\item{ncores}{Integer, the number of cores for parallel computation.
+Default is 6.}
 
 \item{max_age}{Integer, the maximum age considered for analysis. Default is 94.}
 
-\item{baseline_data}{Data providing the absolute age-specific baseline risk (probability) of developing the cancer in the general population (e.g., from SEER database).
-All probability values must be between 0 and 1.
-IMPORTANT: This should be AGE-SPECIFIC risk, NOT cumulative risk. The function will warn if the data appears to be cumulative (monotone increasing or sum > 1).
-- If \code{sex_specific = TRUE} (default): A data frame with columns 'Male' and 'Female', where each column contains the age-specific probabilities for that sex. The number of rows should ideally correspond to \code{max_age}.
-- If \code{sex_specific = FALSE}: A numeric vector or a single-column data frame containing the age-specific probabilities for the combined population. The length (or number of rows) should ideally correspond to \code{max_age}.
-Default data is provided for Colorectal cancer from SEER (up to age 94). If the number of rows/length does not match \code{max_age}, the data will be truncated or extended with the last value.}
+\item{baseline_data}{Data providing the absolute age-specific baseline risk
+(probability) of developing the cancer in the general population (e.g., from
+SEER database). All probability values must be between 0 and 1. IMPORTANT: This
+should be AGE-SPECIFIC risk, NOT cumulative risk. The function will warn if the
+data appears to be cumulative (monotonically increasing or sum > 1).
+- If \code{sex_specific = TRUE} (default): A data frame with columns
+'Male' and 'Female', where each column contains the age-specific
+probabilities for that sex. The number of rows should ideally
+correspond to\code{max_age}.
+- If \code{sex_specific = FALSE}: A numeric vector or a single-column
+data frame containing the age-specific probabilities for
+the combined population. The length (or number of rows)
+should ideally correspond to \code{max_age}.
+Default data is provided for Colorectal cancer from SEER (up to age 94). If the
+number of rows/length does not match \code{max_age}, the data will be truncated or
+extended with the last value.}
 
-\item{remove_proband}{Logical, indicating whether to remove probands from the analysis. Default is FALSE.}
+\item{remove_proband}{Logical, indicating whether to remove probands from the
+analysis. Default is FALSE.}
 
-\item{age_imputation}{Logical, indicating whether to perform age imputation. Default is FALSE.}
+\item{age_imputation}{Logical, indicating whether to perform age imputation.
+Default is FALSE.}
 
-\item{median_max}{Logical, indicating whether to use the baseline median age or \code{max_age} as an upper bound for the median proposal. Default is TRUE.}
+\item{median_max}{Logical, indicating whether to use the baseline median age
+or \code{max_age} as an upper bound for the median proposal. Default is TRUE.}
 
-\item{BaselineNC}{Logical, indicating that the non-carrier penetrance is assumed to be the baseline penetrance. Default is TRUE.}
+\item{BaselineNC}{Logical, indicating that the non-carrier penetrance is assumed
+to be the baseline penetrance. Default is TRUE.}
 
-\item{var}{Numeric vector, variances for the proposal distribution in the Metropolis-Hastings algorithm. Default is \code{c(0.1, 0.1, 2, 2, 5, 5, 5, 5)}.}
+\item{var}{Numeric vector, variances for the proposal distribution in the
+Metropolis-Hastings algorithm. Default is \code{c(0.1, 0.1, 2, 2, 5, 5, 5, 5)}.}
 
-\item{burn_in}{Numeric, the fraction of results to discard as burn-in (0 to 1). Default is 0 (no burn-in).}
+\item{burn_in}{Numeric, the fraction of results to discard as burn-in (0 to 1).
+Default is 0 (no burn-in).}
 
-\item{thinning_factor}{Integer, the factor by which to thin the results. Default is 1 (no thinning).}
+\item{thinning_factor}{Integer, the factor by which to thin the results.
+Default is 1 (no thinning).}
 
-\item{imp_interval}{Integer, the interval at which age imputation should be performed when age_imputation = TRUE.}
+\item{imp_interval}{Integer, the interval at which age imputation should be
+performed when age_imputation = TRUE.}
 
 \item{distribution_data}{Data for generating prior distributions.}
 
-\item{allele_freq}{Numeric, the population allele frequency of the risk variant (p). This will be automatically converted to carrier prevalence (approximately 2p for rare diseases) for internal Bayesian calculations. Default is 0.0001.
-Must be between 0 and 1. The function will warn if the value seems unusually high (> 1\%), which may indicate confusion with carrier prevalence.}
+\item{allele_freq}{Numeric, the population allele frequency of the risk variant (p).
+This will be automatically converted to carrier prevalence (approximately 2p for
+rare alleles) for internal Bayesian calculations. Default is 0.0001.
+Must be between 0 and 1. The function will warn if the value seems unusually
+high (> 1\%), which may indicate confusion with carrier prevalence.}
 
 \item{sample_size}{Optional numeric, sample size for distribution generation.}
 
@@ -101,28 +144,39 @@ Must be between 0 and 1. The function will warn if the value seems unusually hig
 
 \item{risk_proportion}{Numeric, proportion of risk for distribution generation.}
 
-\item{summary_stats}{Logical, indicating whether to include summary statistics in the output. Default is TRUE.}
+\item{summary_stats}{Logical, indicating whether to include summary statistics
+in the output. Default is TRUE.}
 
-\item{rejection_rates}{Logical, indicating whether to include rejection rates in the output. Default is TRUE.}
+\item{rejection_rates}{Logical, indicating whether to include rejection rates
+in the output. Default is TRUE.}
 
-\item{density_plots}{Logical, indicating whether to include density plots in the output. Default is TRUE.}
+\item{density_plots}{Logical, indicating whether to include density plots in
+the output. Default is TRUE.}
 
-\item{plot_trace}{Logical, indicating whether to include trace plots in the output. Default is TRUE.}
+\item{plot_trace}{Logical, indicating whether to include trace plots in the
+output. Default is TRUE.}
 
-\item{penetrance_plot}{Logical, indicating whether to include penetrance plots in the output. Default is TRUE.}
+\item{penetrance_plot}{Logical, indicating whether to include penetrance plots
+in the output. Default is TRUE.}
 
-\item{penetrance_plot_pdf}{Logical, indicating whether to include PDF plots in the output. Default is TRUE.}
+\item{penetrance_plot_pdf}{Logical, indicating whether to include PDF plots
+in the output. Default is TRUE.}
 
-\item{plot_loglikelihood}{Logical, indicating whether to include log-likelihood plots in the output. Default is TRUE.}
+\item{plot_loglikelihood}{Logical, indicating whether to include log-likelihood
+plots in the output. Default is TRUE.}
 
-\item{plot_acf}{Logical, indicating whether to include autocorrelation function (ACF) plots for posterior samples. Default is TRUE.}
+\item{plot_acf}{Logical, indicating whether to include autocorrelation function (ACF)
+plots for posterior samples. Default is TRUE.}
 
-\item{probCI}{Numeric, probability level for credible intervals in penetrance plots. Must be between 0 and 1. Default is 0.95.}
+\item{probCI}{Numeric, probability level for credible intervals in penetrance
+plots. Must be between 0 and 1. Default is 0.95.}
 
-\item{sex_specific}{Logical, indicating whether to use sex-specific parameters in the analysis. Default is TRUE.}
+\item{sex_specific}{Logical, indicating whether to use sex-specific parameters
+in the analysis. Default is TRUE.}
 }
 \value{
-A list containing combined results from all chains, including optional statistics and plots.
+A list containing combined results from all chains, including optional
+statistics and plots.
 }
 \description{
 A comprehensive package for penetrance estimation in family-based studies. This package
@@ -212,7 +266,11 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Nicolas Kubista
   \item BayesMendel Lab
+  \item Giovanni Parmigiani
+  \item Danielle Braun
+  \item Alice Zhang
 }
 
 }

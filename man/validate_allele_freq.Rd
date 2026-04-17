@@ -11,14 +11,18 @@ validate_allele_freq(
 )
 }
 \arguments{
-\item{allele_freq}{The allele frequency value to validate. Should be a numeric value between 0 and 1.}
+\item{allele_freq}{The allele frequency value to validate. Should be a numeric
+value between 0 and 1.}
 
-\item{param_name}{Character string specifying the parameter name (for error messages). Default is "allele_freq".}
+\item{param_name}{Character string specifying the parameter name (for error
+messages). Default is "allele_freq".}
 
-\item{warn_threshold}{Numeric value above which to issue a warning about unusually high allele frequency. Default is 0.01 (1\%).}
+\item{warn_threshold}{Numeric value above which to issue a warning about unusually
+high allele frequency. Default is 0.01 (1\%).}
 }
 \value{
-Logical value TRUE if the allele frequency is valid, otherwise stops with an error message.
+Logical value TRUE if the allele frequency is valid, otherwise stops
+with an error message.
 }
 \description{
 This function validates whether the provided input is a valid allele frequency.
@@ -31,28 +35,29 @@ The function checks:
 \item{Whether the input is numeric}
 \item{Whether the input is a single value (not a vector)}
 \item{Whether the value is between 0 and 1 (inclusive)}
-\item{Whether the value is unusually high (> warn_threshold), which may indicate the user provided carrier prevalence instead of allele frequency}
+\item{Whether the value is unusually high (> warn_threshold), which may indicate
+the user provided carrier prevalence instead of allele frequency}
 \item{Whether the value is exactly 0 or 1, which may not be biologically meaningful}
 }
 }
 \examples{
 # Valid allele frequencies
-validate_allele_freq(0.0001)  # Common for rare variants
+validate_allele_freq(0.0001) # Common for rare variants
 validate_allele_freq(0.001)
 validate_allele_freq(0.05)
 
 \dontrun{
 # Invalid inputs (will throw errors)
-validate_allele_freq("0.001")       # Not numeric
+validate_allele_freq("0.001")          # Not numeric
 validate_allele_freq(c(0.001, 0.002))  # Vector instead of scalar
-validate_allele_freq(-0.001)       # Negative value
-validate_allele_freq(1.5)          # Greater than 1
-validate_allele_freq(NA)           # Missing value
+validate_allele_freq(-0.001)           # Negative value
+validate_allele_freq(1.5)              # Greater than 1
+validate_allele_freq(NA)               # Missing value
 
 # Valid but will trigger warnings
-validate_allele_freq(0.02)         # Unusually high (>1\%), warning issued
-validate_allele_freq(0)            # Edge case, warning issued
-validate_allele_freq(1)            # Edge case, warning issued
+validate_allele_freq(0.02)         # Unusually high (>1\%), warning
+validate_allele_freq(0)            # Edge case, warning
+validate_allele_freq(1)            # Edge case, warning
 }
 
 }

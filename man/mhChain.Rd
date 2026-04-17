@@ -26,9 +26,11 @@ mhChain(
 )
 }
 \arguments{
-\item{seed}{Integer, the seed for the random number generator to ensure reproducibility.}
+\item{seed}{Integer, the seed for the random number generator to ensure
+reproducibility.}
 
-\item{n_iter}{Integer, the number of iterations to perform in the Metropolis-Hastings algorithm.}
+\item{n_iter}{Integer, the number of iterations to perform in the Metropolis-Hastings
+algorithm.}
 
 \item{burn_in}{Integer, the number of initial iterations to discard (burn-in period).}
 
@@ -36,42 +38,53 @@ mhChain(
 
 \item{ncores}{Integer, the number of cores to use for parallel computation.}
 
-\item{data}{Data frame, containing family and genetic information used in the analysis.}
+\item{data}{Data frame, containing family and genetic information used in the
+analysis.}
 
 \item{twins}{Information on monozygous twins or triplets in the pedigrees.}
 
 \item{max_age}{Integer, the maximum age considered in the analysis.}
 
-\item{baseline_data}{Numeric matrix or vector, containing baseline risk estimates for different ages and sexes.}
+\item{baseline_data}{Numeric matrix or vector, containing baseline risk estimates
+for different ages and sexes.}
 
-\item{prior_distributions}{List, containing prior distributions for the parameters being estimated.}
+\item{prior_distributions}{List, containing prior distributions for the parameters
+being estimated.}
 
-\item{prev}{Numeric, the carrier prevalence (heterozygote frequency) in the population. Note: This is automatically calculated from allele frequency in the main penetrance() function as approximately 2p for rare variants.}
+\item{prev}{Numeric, the carrier prevalence (heterozygote frequency) in the population.
+Note: This is automatically calculated from allele frequency in the main penetrance()
+function as approximately 2p for rare variants.}
 
-\item{median_max}{Logical, indicates if the maximum median age should be used for the Weibull distribution.}
+\item{median_max}{Logical, indicates if the maximum median age should be used
+for the Weibull distribution.}
 
-\item{BaselineNC}{Logical, indicates if non-carrier penetrance should be based on SEER data.}
+\item{BaselineNC}{Logical, indicates if non-carrier penetrance should be based
+on SEER data.}
 
-\item{var}{Numeric, the variance for the proposal distribution in the Metropolis-Hastings algorithm.}
+\item{var}{Numeric, the variance for the proposal distribution in the Metropolis-Hastings
+algorithm.}
 
 \item{age_imputation}{Logical, indicates if age imputation should be performed.}
 
-\item{imp_interval}{Integer, the interval at which age imputation should be performed when age_imputation = TRUE.}
+\item{imp_interval}{Integer, the interval at which age imputation should be
+performed when age_imputation = TRUE.}
 
-\item{remove_proband}{Logical, indicates if the proband should be removed from the analysis.}
+\item{remove_proband}{Logical, indicates if the proband should be removed from
+the analysis.}
 
 \item{sex_specific}{Logical, indicates if the analysis should differentiate by sex.}
 }
 \value{
-A list containing samples, log likelihoods, log-acceptance ratio, and rejection rate for each iteration.
+A list containing samples, log likelihoods, log-acceptance ratio,
+and rejection rate for each iteration.
 }
 \description{
-Performs a single chain execution in the Metropolis-Hastings algorithm for Bayesian inference,
-specifically tailored for cancer risk estimation. This function can handle both sex-specific and
-non-sex-specific scenarios.
+Performs a single chain execution in the Metropolis-Hastings algorithm for
+Bayesian inference, specifically tailored for cancer risk estimation. This
+function can handle both sex-specific and non-sex-specific scenarios.
 }
 \examples{
-# Create sample data in PanelPRO format
+# Create sample data in FamPRO format
 data <- data.frame(
   ID = 1:10,
   PedigreeID = rep(1, 10),

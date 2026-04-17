@@ -28,7 +28,9 @@ mhLogLikelihood_clipp(
 
 \item{baseline_data}{Numeric matrix of baseline risk data}
 
-\item{prev}{Numeric, the carrier prevalence (heterozygote frequency) in the population}
+\item{prev}{Numeric, the carrier prevalence (heterozygote frequency) in the
+population. This should be approximately 2p where p is the allele frequency
+when the allele is rare.}
 
 \item{geno_freq}{Numeric vector of frequencies}
 
@@ -48,7 +50,7 @@ Calculate Log Likelihood using clipp Package
 # Create example parameters and data
 paras <- c(0.8, 0.7, 20, 25, 50, 45, 30, 35)  # Example parameters
 
-# Create sample data in PanelPRO format
+# Create sample data in Fam3PRO format
 families <- data.frame(
   ID = 1:10,
   PedigreeID = rep(1, 10),

@@ -7,7 +7,7 @@
 transformDF(df)
 }
 \arguments{
-\item{df}{The input data frame in the usual PanelPRO format.}
+\item{df}{The input data frame in the usual Fam3PRO format.}
 }
 \value{
 A data frame in the format required for clipp with the following columns:
@@ -19,11 +19,21 @@ A data frame in the format required for clipp with the following columns:
 \item{aff}{Affection status}
 \item{sex}{Sex (2 for female, 1 for male)}
 \item{age}{Age at diagnosis or current age}
-\item{geno}{Genotype information}
+\item{geno}{Genotype information (internal format)}
 }
 \description{
-This function transforms a data frame from the standard format used in PanelPRO
+This function transforms a data frame from the standard format used in Fam3PRO
 into the required format which conforms to the requirements of penetrance (and clipp).
+}
+\details{
+This function implements a two-tier naming convention:
+\itemize{
+\item{User-facing input: uppercase 'Geno' (values 0 or 1)}
+\item{Internal processing: lowercase 'geno' (values "1/1" or "1/2")}
+}
+The transformation converts 'Geno' = 1 (carrier) to 'geno' = "1/2", and
+'Geno' = 0 (non-carrier) to 'geno' = "1/1". This separation provides clear
+distinction between user interface and internal implementation.
 }
 \examples{
 # Create example data frame

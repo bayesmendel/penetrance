@@ -79,7 +79,10 @@ mhChain(
 
 - prev:
 
-  Numeric, the prevalence of the risk allele in the population.
+  Numeric, the carrier prevalence (heterozygote frequency) in the
+  population. Note: This is automatically calculated from allele
+  frequency in the main penetrance() function as approximately 2p for
+  rare variants.
 
 - median_max:
 
@@ -193,5 +196,6 @@ results <- mhChain(
   remove_proband = TRUE,
   sex_specific = TRUE
 )
+#> Warning: remove_proband = TRUE: affection status set to NA for proband(s) at row index/indices 1. Likelihood contribution will be 1 for these individuals.
 #> Starting Chain 1
 ```

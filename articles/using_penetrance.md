@@ -149,7 +149,7 @@ approach is run. Available options are:
 #' @param thinning_factor Integer, the factor by which to thin the results. Default is 1 (no thinning).
 #' @param imp_interval Integer, the interval at which age imputation should be performed when age_imputation = TRUE.
 #' @param distribution_data Data for generating prior distributions.
-#' @param prev Numeric, prevalence of the carrier status. Default is 0.0001.
+#' @param allele_freq Numeric, the population allele frequency of the risk variant (p). This will be automatically converted to carrier prevalence (approximately 2p for rare diseases) for internal Bayesian calculations. Default is 0.0001.
 #' @param sample_size Optional numeric, sample size for distribution generation.
 #' @param ratio Optional numeric, ratio parameter for distribution generation.
 #' @param prior_params List, parameters for prior distributions.
@@ -173,7 +173,9 @@ To run the algorithm, we require the user to input:
 - A single chain with 10k iterations of the adaptive MH algorithm. The
   number of cores for the paralellization is set to `ncores = 4`.
 - The pedigree data are the test family 1.
-- The prevalence is set at `prev = 0.0001`.
+- The allele frequency is set at `allele_freq = 0.0001`, which will be
+  automatically converted to carrier prevalence (approximately 0.0002
+  for rare variants).
 - The `penetrance` function takes baseline age-specific probabilitie of
   developing cancer as as input `baseline_data`. In the default setting
   with `BaselineNC = TRUE` this baseline is assumed to reflect the

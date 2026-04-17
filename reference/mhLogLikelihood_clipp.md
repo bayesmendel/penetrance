@@ -43,7 +43,8 @@ mhLogLikelihood_clipp(
 
 - prev:
 
-  Numeric, prevalence
+  Numeric, the carrier prevalence (heterozygote frequency) in the
+  population
 
 - geno_freq:
 

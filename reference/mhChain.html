@@ -11,7 +11,7 @@ non-sex-specific scenarios."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">penetrance</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -123,7 +123,7 @@ non-sex-specific scenarios.</p>
 
 
 <dt id="arg-prev">prev<a class="anchor" aria-label="anchor" href="#arg-prev"></a></dt>
-<dd><p>Numeric, the prevalence of the risk allele in the population.</p></dd>
+<dd><p>Numeric, the carrier prevalence (heterozygote frequency) in the population. Note: This is automatically calculated from allele frequency in the main penetrance() function as approximately 2p for rare variants.</p></dd>
 
 
 <dt id="arg-median-max">median_max<a class="anchor" aria-label="anchor" href="#arg-median-max"></a></dt>
@@ -233,6 +233,7 @@ non-sex-specific scenarios.</p>
 <span class="r-in"><span>  remove_proband <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>  sex_specific <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>remove_proband = TRUE: affection status set to NA for proband(s) at row index/indices 1. Likelihood contribution will be 1 for these individuals.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Starting Chain 1</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
@@ -242,7 +243,7 @@ non-sex-specific scenarios.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Sol Rosito, BayesMendel Lab.</p>
+  <p>Developed by Sol Rosito, Nicolas Kubista, BayesMendel Lab, Giovanni Parmigiani, Danielle Braun, Alice Zhang.</p>
 </div>
 
 <div class="pkgdown-footer-right">

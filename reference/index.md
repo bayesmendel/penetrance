@@ -80,5 +80,9 @@
   : Processed Family Data
 - [`transformDF()`](https://nicokubi.github.io/penetrance/reference/transformDF.md)
   : Transform Data Frame
+- [`validate_allele_freq()`](https://nicokubi.github.io/penetrance/reference/validate_allele_freq.md)
+  : Validate Allele Frequency Input
+- [`validate_baseline_data()`](https://nicokubi.github.io/penetrance/reference/validate_baseline_data.md)
+  : Validate Baseline Penetrance Data
 - [`validate_weibull_parameters()`](https://nicokubi.github.io/penetrance/reference/validate_weibull_parameters.md)
   : Validate Weibull Parameters

@@ -32,7 +32,7 @@ penetrance(
   thinning_factor = 1,
   imp_interval = 100,
   distribution_data = distribution_data_default,
-  prev = 1e-04,
+  allele_freq = 1e-04,
   sample_size = NULL,
   ratio = NULL,
   prior_params = prior_params_default,
@@ -124,17 +124,19 @@ penetrance(
 
   Data providing the absolute age-specific baseline risk (probability)
   of developing the cancer in the general population (e.g., from SEER
-  database). All probability values must be between 0 and 1. - If
-  `sex_specific = TRUE` (default): A data frame with columns 'Male' and
-  'Female', where each column contains the age-specific probabilities
-  for that sex. The number of rows should ideally correspond to
-  `max_age`. - If `sex_specific = FALSE`: A numeric vector or a
-  single-column data frame containing the age-specific probabilities for
-  the combined population. The length (or number of rows) should ideally
-  correspond to `max_age`. Default data is provided for Colorectal
-  cancer from SEER (up to age 94). If the number of rows/length does not
-  match `max_age`, the data will be truncated or extended with the last
-  value.
+  database). All probability values must be between 0 and 1. IMPORTANT:
+  This should be AGE-SPECIFIC risk, NOT cumulative risk. The function
+  will warn if the data appears to be cumulative (monotone increasing or
+  sum \> 1). - If `sex_specific = TRUE` (default): A data frame with
+  columns 'Male' and 'Female', where each column contains the
+  age-specific probabilities for that sex. The number of rows should
+  ideally correspond to `max_age`. - If `sex_specific = FALSE`: A
+  numeric vector or a single-column data frame containing the
+  age-specific probabilities for the combined population. The length (or
+  number of rows) should ideally correspond to `max_age`. Default data
+  is provided for Colorectal cancer from SEER (up to age 94). If the
+  number of rows/length does not match `max_age`, the data will be
+  truncated or extended with the last value.
 
 - remove_proband:
 
@@ -181,9 +183,14 @@ penetrance(
 
   Data for generating prior distributions.
 
-- prev:
+- allele_freq:
 
-  Numeric, prevalence of the carrier status. Default is 0.0001.
+  Numeric, the population allele frequency of the risk variant (p). This
+  will be automatically converted to carrier prevalence (approximately
+  2p for rare diseases) for internal Bayesian calculations. Default is
+  0.0001. Must be between 0 and 1. The function will warn if the value
+  seems unusually high (\> 1%), which may indicate confusion with
+  carrier prevalence.
 
 - sample_size:
 
@@ -338,22 +345,22 @@ result <- penetrance(
   plot_acf = FALSE
 )
 #> Rejection rates:
-#>   Chain 1: 0.20
+#>   Chain 1: 0.70
 
 # View basic results
 head(result$summary_stats)
 #>   Median_Male    Median_Female   Threshold_Male  Threshold_Female
-#>  Min.   :40.00   Min.   :50.00   Min.   :32.99   Min.   :25.00   
-#>  1st Qu.:40.66   1st Qu.:50.61   1st Qu.:33.44   1st Qu.:25.95   
-#>  Median :42.86   Median :52.98   Median :33.63   Median :26.32   
-#>  Mean   :42.33   Mean   :52.38   Mean   :33.69   Mean   :26.27   
-#>  3rd Qu.:43.34   3rd Qu.:53.20   3rd Qu.:33.81   3rd Qu.:26.60   
-#>  Max.   :44.74   Max.   :54.92   Max.   :35.00   Max.   :27.21   
-#>  First_Quartile_Male First_Quartile_Female Asymptote_Male    Asymptote_Female
-#>  Min.   :38.01       Min.   :31.07         Min.   :0.05812   Min.   :0.5086  
-#>  1st Qu.:39.12       1st Qu.:32.52         1st Qu.:0.11858   1st Qu.:0.5667  
-#>  Median :40.03       Median :32.94         Median :0.13965   Median :0.5962  
-#>  Mean   :39.61       Mean   :32.60         Mean   :0.14527   Mean   :0.6219  
-#>  3rd Qu.:40.14       3rd Qu.:33.16         3rd Qu.:0.16854   3rd Qu.:0.7064  
-#>  Max.   :40.66       Max.   :33.48         Max.   :0.23874   Max.   :0.7546  
+#>  Min.   :39.83   Min.   :49.99   Min.   :34.91   Min.   :25.00   
+#>  1st Qu.:40.00   1st Qu.:49.99   1st Qu.:34.94   1st Qu.:25.00   
+#>  Median :40.00   Median :50.00   Median :35.00   Median :25.00   
+#>  Mean   :39.98   Mean   :50.00   Mean   :34.97   Mean   :25.05   
+#>  3rd Qu.:40.00   3rd Qu.:50.00   3rd Qu.:35.00   3rd Qu.:25.00   
+#>  Max.   :40.03   Max.   :50.00   Max.   :35.00   Max.   :25.29   
+#>  First_Quartile_Male First_Quartile_Female Asymptote_Male   Asymptote_Female
+#>  Min.   :38.93       Min.   :32.50         Min.   :0.5139   Min.   :0.5571  
+#>  1st Qu.:39.00       1st Qu.:32.50         1st Qu.:0.5672   1st Qu.:0.7194  
+#>  Median :39.00       Median :32.50         Median :0.5672   Median :0.7194  
+#>  Mean   :39.02       Mean   :32.59         Mean   :0.5786   Mean   :0.7031  
+#>  3rd Qu.:39.00       3rd Qu.:32.63         3rd Qu.:0.5672   3rd Qu.:0.7194  
+#>  Max.   :39.14       Max.   :32.83         Max.   :0.6793   Max.   :0.7534  
 ```

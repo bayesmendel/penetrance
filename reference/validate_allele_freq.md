@@ -63,7 +63,7 @@ validate_allele_freq(0.0001)  # Common for rare variants
 validate_allele_freq(0.001)
 #> [1] TRUE
 validate_allele_freq(0.05)
-#> Warning: Warning: 'allele_freq' is 0.05 (5%), which is relatively high for a disease-associated variant. Please verify this is the allele frequency (p) and not the carrier prevalence (approximately 2p). For example, if the carrier prevalence is 2%, the allele frequency should be approximately 1% (0.01).
+#> Warning: Warning: 'allele_freq' is 0.05 (5%), which is relatively high for a disease-associated variant. Please verify that this is the allele frequency (p) and not the carrier prevalence (approximately 2p). For example, if the carrier prevalence is 2%, the allele frequency should be approximately 1% (0.01).
 #> [1] TRUE
 
 if (FALSE) { # \dontrun{

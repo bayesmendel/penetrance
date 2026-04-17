@@ -2,7 +2,7 @@
 
 The R package `penetrance` provides an estimation of age-specific
 penetrance for complex family-based studies in a format compatible with
-with the PanelPRO R package.
+with the Fam3PRO R package.
 
 This vignette demonstrates the process of age imputation and penetrance
 estimation using the`penetrance` package based on family data and

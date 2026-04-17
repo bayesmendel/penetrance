@@ -10,7 +10,7 @@ penetrance estimates.
 
 The data-generating distribution of the age-specific penetrances is
 based on existing penetrance estimates for Colorectal cancer in carriers
-of any pathogenic variant in MLH1 from the PanelPRO Database.
+of any pathogenic variant in MLH1 from the Fam3PRO Database.
 
 The families were simulated using the PedUtils Rpackage.
 
@@ -34,7 +34,7 @@ prior_params <- list(
     first_quartile = list(q1 = 6, q2 = 3)
 )
 
-# Set the allele frequency for MLH1 based on PanelPRO Database
+# Set the allele frequency for MLH1 based on Fam3PRO Database
 prevMLH1 <- 0.0004453125 
 
 # We use the default baseline (non-carrier) penetrance
@@ -53,5 +53,5 @@ out_sim <- penetrance(
 
 Lee G, Liang JW, Zhang Q, Huang T, Choirat C, Parmigiani G, Braun D.
 Multi-syndrome, multi-gene risk modeling for individuals with a family
-history of cancer with the novel R package PanelPRO. Elife.
+history of cancer with the novel R package Fam3PRO. Elife.
 2021;10:e68699. <doi:10.7554/eLife.6869>

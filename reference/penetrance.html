@@ -108,33 +108,55 @@ chains and provides various options for analyzing and visualizing the results.</
 
 
 <dl><dt id="arg-pedigree">pedigree<a class="anchor" aria-label="anchor" href="#arg-pedigree"></a></dt>
-<dd><p>A list of data frames, where each data frame represents a single pedigree and contains the following columns:</p><ul><li><p><code>PedigreeID</code>: A numeric or character identifier for the family/pedigree. Must be consistent for all members of the same family within a data frame.</p></li>
-<li><p><code>ID</code>: A unique numeric or character identifier for each individual within their respective pedigree data frame.</p></li>
-<li><p><code>Sex</code>: An integer representing biological sex: <code>0</code> for female, <code>1</code> for male. Use <code>NA</code> for unknown sex.</p></li>
-<li><p><code>MotherID</code>: The <code>ID</code> of the individual's mother. Should correspond to an <code>ID</code> within the same pedigree data frame or be <code>NA</code> if the mother is not in the pedigree (founder).</p></li>
-<li><p><code>FatherID</code>: The <code>ID</code> of the individual's father. Should correspond to an <code>ID</code> within the same pedigree data frame or be <code>NA</code> if the father is not in the pedigree (founder).</p></li>
-<li><p><code>isProband</code>: An integer indicating if the individual is a proband: <code>1</code> for proband, <code>0</code> otherwise.</p></li>
-<li><p><code>CurAge</code>: An integer representing the age of censoring. This is the current age if the individual is alive, or the age at death if deceased. Must be between <code>1</code> and <code>max_age</code>. Use <code>NA</code> for unknown ages (but note this may affect analysis or require imputation).</p></li>
-<li><p><code>isAff</code>: An integer indicating the affection status for the cancer of interest: <code>1</code> if diagnosed, <code>0</code> if unaffected. Use <code>NA</code> for unknown status.</p></li>
-<li><p><code>Age</code>: An integer representing the age at cancer diagnosis. Should be <code>NA</code> if <code>isAff</code> is <code>0</code> or <code>NA</code>. Must be between <code>1</code> and <code>max_age</code>, and less than or equal to <code>CurAge</code>. Use <code>NA</code> for unknown diagnosis age (but note this may affect analysis or require imputation).</p></li>
-<li><p><code>Geno</code>: An integer representing the germline genetic test result: <code>1</code> for carrier (positive), <code>0</code> for non-carrier (negative). Use <code>NA</code> for unknown or untested individuals.</p></li>
+<dd><p>A list of data frames, where each data frame represents a
+single pedigree and contains the following columns:</p><ul><li><p><code>PedigreeID</code>: A numeric or character identifier for the family/pedigree.
+Must be consistent for all members of the same family within a data frame.</p></li>
+<li><p><code>ID</code>: A unique numeric or character identifier for each individual within
+their respective pedigree data frame.</p></li>
+<li><p><code>Sex</code>: An integer representing biological sex: <code>0</code> for female, <code>1</code> for male.
+Use <code>NA</code> for unknown sex.</p></li>
+<li><p><code>MotherID</code>: The <code>ID</code> of the individual's mother. Should correspond to an
+<code>ID</code> within the same pedigree data frame or be <code>NA</code> if the mother is not in the pedigree (founder).</p></li>
+<li><p><code>FatherID</code>: The <code>ID</code> of the individual's father. Should correspond to an
+<code>ID</code> within the same pedigree data frame or be <code>NA</code> if the father is not in the pedigree (founder).</p></li>
+<li><p><code>isProband</code>: An integer indicating if the individual is a proband: <code>1</code> for
+proband, <code>0</code> otherwise.</p></li>
+<li><p><code>CurAge</code>: An integer representing the age of censoring. This is the current
+age if the individual is alive, or the age at death if deceased. Must be
+between <code>1</code> and <code>max_age</code>. Use <code>NA</code> for unknown ages (but note this may affect
+analysis or require imputation).</p></li>
+<li><p><code>isAff</code>: An integer indicating the affection status for the cancer of
+interest: <code>1</code> if diagnosed, <code>0</code> if unaffected. Use <code>NA</code> for unknown status.</p></li>
+<li><p><code>Age</code>: An integer representing the age at cancer diagnosis. Should be
+<code>NA</code> if <code>isAff</code> is <code>0</code> or <code>NA</code>. Must be between <code>1</code> and <code>max_age</code>, and less
+than or equal to <code>CurAge</code>. Use <code>NA</code> for unknown diagnosis age (but note this
+may affect analysis or require imputation).</p></li>
+<li><p><code>Geno</code>: An integer representing the germline genetic test result: <code>1</code> for
+carrier (positive), <code>0</code> for non-carrier (negative). Use <code>NA</code> for unknown or
+untested individuals.</p></li>
 </ul></dd>
 
 
 <dt id="arg-twins">twins<a class="anchor" aria-label="anchor" href="#arg-twins"></a></dt>
-<dd><p>A list specifying identical twins or triplets in the family. Each element of the list should be a vector containing the <code>ID</code>s of the identical siblings within a pedigree. For example: <code>list(c("ID1", "ID2"), c("ID3", "ID4", "ID5"))</code>. Default is <code>NULL</code>.</p></dd>
+<dd><p>A list specifying identical twins or triplets in the family. Each
+element of the list should be a vector containing the <code>ID</code>s of the identical
+siblings within a pedigree. For example: <code>list(c("ID1", "ID2"), c("ID3", "ID4", "ID5"))</code>.
+Default is <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-n-chains">n_chains<a class="anchor" aria-label="anchor" href="#arg-n-chains"></a></dt>
-<dd><p>Integer, the number of chains for parallel computation. Default is 1.</p></dd>
+<dd><p>Integer, the number of chains for parallel computation.
+Default is 1.</p></dd>
 
 
 <dt id="arg-n-iter-per-chain">n_iter_per_chain<a class="anchor" aria-label="anchor" href="#arg-n-iter-per-chain"></a></dt>
-<dd><p>Integer, the number of iterations for each chain. Default is 10000.</p></dd>
+<dd><p>Integer, the number of iterations for each chain.
+Default is 10000.</p></dd>
 
 
 <dt id="arg-ncores">ncores<a class="anchor" aria-label="anchor" href="#arg-ncores"></a></dt>
-<dd><p>Integer, the number of cores for parallel computation. Default is 6.</p></dd>
+<dd><p>Integer, the number of cores for parallel computation.
+Default is 6.</p></dd>
 
 
 <dt id="arg-max-age">max_age<a class="anchor" aria-label="anchor" href="#arg-max-age"></a></dt>
@@ -142,44 +164,62 @@ chains and provides various options for analyzing and visualizing the results.</
 
 
 <dt id="arg-baseline-data">baseline_data<a class="anchor" aria-label="anchor" href="#arg-baseline-data"></a></dt>
-<dd><p>Data providing the absolute age-specific baseline risk (probability) of developing the cancer in the general population (e.g., from SEER database).
-All probability values must be between 0 and 1.
-IMPORTANT: This should be AGE-SPECIFIC risk, NOT cumulative risk. The function will warn if the data appears to be cumulative (monotone increasing or sum &gt; 1).
-- If <code>sex_specific = TRUE</code> (default): A data frame with columns 'Male' and 'Female', where each column contains the age-specific probabilities for that sex. The number of rows should ideally correspond to <code>max_age</code>.
-- If <code>sex_specific = FALSE</code>: A numeric vector or a single-column data frame containing the age-specific probabilities for the combined population. The length (or number of rows) should ideally correspond to <code>max_age</code>.
-Default data is provided for Colorectal cancer from SEER (up to age 94). If the number of rows/length does not match <code>max_age</code>, the data will be truncated or extended with the last value.</p></dd>
+<dd><p>Data providing the absolute age-specific baseline risk
+(probability) of developing the cancer in the general population (e.g., from
+SEER database). All probability values must be between 0 and 1. IMPORTANT: This
+should be AGE-SPECIFIC risk, NOT cumulative risk. The function will warn if the
+data appears to be cumulative (monotonically increasing or sum &gt; 1).
+- If <code>sex_specific = TRUE</code> (default): A data frame with columns
+'Male' and 'Female', where each column contains the age-specific
+probabilities for that sex. The number of rows should ideally
+correspond to<code>max_age</code>.
+- If <code>sex_specific = FALSE</code>: A numeric vector or a single-column
+data frame containing the age-specific probabilities for
+the combined population. The length (or number of rows)
+should ideally correspond to <code>max_age</code>.
+Default data is provided for Colorectal cancer from SEER (up to age 94). If the
+number of rows/length does not match <code>max_age</code>, the data will be truncated or
+extended with the last value.</p></dd>
 
 
 <dt id="arg-remove-proband">remove_proband<a class="anchor" aria-label="anchor" href="#arg-remove-proband"></a></dt>
-<dd><p>Logical, indicating whether to remove probands from the analysis. Default is FALSE.</p></dd>
+<dd><p>Logical, indicating whether to remove probands from the
+analysis. Default is FALSE.</p></dd>
 
 
 <dt id="arg-age-imputation">age_imputation<a class="anchor" aria-label="anchor" href="#arg-age-imputation"></a></dt>
-<dd><p>Logical, indicating whether to perform age imputation. Default is FALSE.</p></dd>
+<dd><p>Logical, indicating whether to perform age imputation.
+Default is FALSE.</p></dd>
 
 
 <dt id="arg-median-max">median_max<a class="anchor" aria-label="anchor" href="#arg-median-max"></a></dt>
-<dd><p>Logical, indicating whether to use the baseline median age or <code>max_age</code> as an upper bound for the median proposal. Default is TRUE.</p></dd>
+<dd><p>Logical, indicating whether to use the baseline median age
+or <code>max_age</code> as an upper bound for the median proposal. Default is TRUE.</p></dd>
 
 
 <dt id="arg-baselinenc">BaselineNC<a class="anchor" aria-label="anchor" href="#arg-baselinenc"></a></dt>
-<dd><p>Logical, indicating that the non-carrier penetrance is assumed to be the baseline penetrance. Default is TRUE.</p></dd>
+<dd><p>Logical, indicating that the non-carrier penetrance is assumed
+to be the baseline penetrance. Default is TRUE.</p></dd>
 
 
 <dt id="arg-var">var<a class="anchor" aria-label="anchor" href="#arg-var"></a></dt>
-<dd><p>Numeric vector, variances for the proposal distribution in the Metropolis-Hastings algorithm. Default is <code>c(0.1, 0.1, 2, 2, 5, 5, 5, 5)</code>.</p></dd>
+<dd><p>Numeric vector, variances for the proposal distribution in the
+Metropolis-Hastings algorithm. Default is <code>c(0.1, 0.1, 2, 2, 5, 5, 5, 5)</code>.</p></dd>
 
 
 <dt id="arg-burn-in">burn_in<a class="anchor" aria-label="anchor" href="#arg-burn-in"></a></dt>
-<dd><p>Numeric, the fraction of results to discard as burn-in (0 to 1). Default is 0 (no burn-in).</p></dd>
+<dd><p>Numeric, the fraction of results to discard as burn-in (0 to 1).
+Default is 0 (no burn-in).</p></dd>
 
 
 <dt id="arg-thinning-factor">thinning_factor<a class="anchor" aria-label="anchor" href="#arg-thinning-factor"></a></dt>
-<dd><p>Integer, the factor by which to thin the results. Default is 1 (no thinning).</p></dd>
+<dd><p>Integer, the factor by which to thin the results.
+Default is 1 (no thinning).</p></dd>
 
 
 <dt id="arg-imp-interval">imp_interval<a class="anchor" aria-label="anchor" href="#arg-imp-interval"></a></dt>
-<dd><p>Integer, the interval at which age imputation should be performed when age_imputation = TRUE.</p></dd>
+<dd><p>Integer, the interval at which age imputation should be
+performed when age_imputation = TRUE.</p></dd>
 
 
 <dt id="arg-distribution-data">distribution_data<a class="anchor" aria-label="anchor" href="#arg-distribution-data"></a></dt>
@@ -187,8 +227,11 @@ Default data is provided for Colorectal cancer from SEER (up to age 94). If the 
 
 
 <dt id="arg-allele-freq">allele_freq<a class="anchor" aria-label="anchor" href="#arg-allele-freq"></a></dt>
-<dd><p>Numeric, the population allele frequency of the risk variant (p). This will be automatically converted to carrier prevalence (approximately 2p for rare diseases) for internal Bayesian calculations. Default is 0.0001.
-Must be between 0 and 1. The function will warn if the value seems unusually high (&gt; 1%), which may indicate confusion with carrier prevalence.</p></dd>
+<dd><p>Numeric, the population allele frequency of the risk variant (p).
+This will be automatically converted to carrier prevalence (approximately 2p for
+rare alleles) for internal Bayesian calculations. Default is 0.0001.
+Must be between 0 and 1. The function will warn if the value seems unusually
+high (&gt; 1%), which may indicate confusion with carrier prevalence.</p></dd>
 
 
 <dt id="arg-sample-size">sample_size<a class="anchor" aria-label="anchor" href="#arg-sample-size"></a></dt>
@@ -208,48 +251,59 @@ Must be between 0 and 1. The function will warn if the value seems unusually hig
 
 
 <dt id="arg-summary-stats">summary_stats<a class="anchor" aria-label="anchor" href="#arg-summary-stats"></a></dt>
-<dd><p>Logical, indicating whether to include summary statistics in the output. Default is TRUE.</p></dd>
+<dd><p>Logical, indicating whether to include summary statistics
+in the output. Default is TRUE.</p></dd>
 
 
 <dt id="arg-rejection-rates">rejection_rates<a class="anchor" aria-label="anchor" href="#arg-rejection-rates"></a></dt>
-<dd><p>Logical, indicating whether to include rejection rates in the output. Default is TRUE.</p></dd>
+<dd><p>Logical, indicating whether to include rejection rates
+in the output. Default is TRUE.</p></dd>
 
 
 <dt id="arg-density-plots">density_plots<a class="anchor" aria-label="anchor" href="#arg-density-plots"></a></dt>
-<dd><p>Logical, indicating whether to include density plots in the output. Default is TRUE.</p></dd>
+<dd><p>Logical, indicating whether to include density plots in
+the output. Default is TRUE.</p></dd>
 
 
 <dt id="arg-plot-trace">plot_trace<a class="anchor" aria-label="anchor" href="#arg-plot-trace"></a></dt>
-<dd><p>Logical, indicating whether to include trace plots in the output. Default is TRUE.</p></dd>
+<dd><p>Logical, indicating whether to include trace plots in the
+output. Default is TRUE.</p></dd>
 
 
 <dt id="arg-penetrance-plot">penetrance_plot<a class="anchor" aria-label="anchor" href="#arg-penetrance-plot"></a></dt>
-<dd><p>Logical, indicating whether to include penetrance plots in the output. Default is TRUE.</p></dd>
+<dd><p>Logical, indicating whether to include penetrance plots
+in the output. Default is TRUE.</p></dd>
 
 
 <dt id="arg-penetrance-plot-pdf">penetrance_plot_pdf<a class="anchor" aria-label="anchor" href="#arg-penetrance-plot-pdf"></a></dt>
-<dd><p>Logical, indicating whether to include PDF plots in the output. Default is TRUE.</p></dd>
+<dd><p>Logical, indicating whether to include PDF plots
+in the output. Default is TRUE.</p></dd>
 
 
 <dt id="arg-plot-loglikelihood">plot_loglikelihood<a class="anchor" aria-label="anchor" href="#arg-plot-loglikelihood"></a></dt>
-<dd><p>Logical, indicating whether to include log-likelihood plots in the output. Default is TRUE.</p></dd>
+<dd><p>Logical, indicating whether to include log-likelihood
+plots in the output. Default is TRUE.</p></dd>
 
 
 <dt id="arg-plot-acf">plot_acf<a class="anchor" aria-label="anchor" href="#arg-plot-acf"></a></dt>
-<dd><p>Logical, indicating whether to include autocorrelation function (ACF) plots for posterior samples. Default is TRUE.</p></dd>
+<dd><p>Logical, indicating whether to include autocorrelation function (ACF)
+plots for posterior samples. Default is TRUE.</p></dd>
 
 
 <dt id="arg-probci">probCI<a class="anchor" aria-label="anchor" href="#arg-probci"></a></dt>
-<dd><p>Numeric, probability level for credible intervals in penetrance plots. Must be between 0 and 1. Default is 0.95.</p></dd>
+<dd><p>Numeric, probability level for credible intervals in penetrance
+plots. Must be between 0 and 1. Default is 0.95.</p></dd>
 
 
 <dt id="arg-sex-specific">sex_specific<a class="anchor" aria-label="anchor" href="#arg-sex-specific"></a></dt>
-<dd><p>Logical, indicating whether to use sex-specific parameters in the analysis. Default is TRUE.</p></dd>
+<dd><p>Logical, indicating whether to use sex-specific parameters
+in the analysis. Default is TRUE.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list containing combined results from all chains, including optional statistics and plots.</p>
+    <p>A list containing combined results from all chains, including optional
+statistics and plots.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -267,7 +321,11 @@ Must be between 0 and 1. The function will warn if the value seems unusually hig
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
     <p><strong>Maintainer</strong>: Sol Rosito <a href="mailto:bmendel@jimmy.harvard.edu">bmendel@jimmy.harvard.edu</a></p>
-<p>Authors:</p><ul><li><p>BayesMendel Lab</p></li>
+<p>Authors:</p><ul><li><p>Nicolas Kubista</p></li>
+<li><p>BayesMendel Lab</p></li>
+<li><p>Giovanni Parmigiani</p></li>
+<li><p>Danielle Braun</p></li>
+<li><p>Alice Zhang</p></li>
 </ul></div>
 
     <div class="section level2">

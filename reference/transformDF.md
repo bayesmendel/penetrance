@@ -1,7 +1,7 @@
 # Transform Data Frame
 
 This function transforms a data frame from the standard format used in
-PanelPRO into the required format which conforms to the requirements of
+Fam3PRO into the required format which conforms to the requirements of
 penetrance (and clipp).
 
 ## Usage
@@ -14,7 +14,7 @@ transformDF(df)
 
 - df:
 
-  The input data frame in the usual PanelPRO format.
+  The input data frame in the usual Fam3PRO format.
 
 ## Value
 
@@ -55,7 +55,19 @@ columns:
 
 - geno:
 
-  Genotype information
+  Genotype information (internal format)
+
+## Details
+
+This function implements a two-tier naming convention:
+
+- User-facing input: uppercase 'Geno' (values 0 or 1)
+
+- Internal processing: lowercase 'geno' (values "1/1" or "1/2")
+
+The transformation converts 'Geno' = 1 (carrier) to 'geno' = "1/2", and
+'Geno' = 0 (non-carrier) to 'geno' = "1/1". This separation provides
+clear distinction between user interface and internal implementation.
 
 ## Examples
 

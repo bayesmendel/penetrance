@@ -124,7 +124,7 @@ rejection rate for each iteration.
 ## Examples
 
 ``` r
-# Create sample data in PanelPRO format
+# Create sample data in FamPRO format
 data <- data.frame(
   ID = 1:10,
   PedigreeID = rep(1, 10),

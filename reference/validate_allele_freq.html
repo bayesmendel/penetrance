@@ -68,34 +68,39 @@ The function also provides warnings for edge cases and common mistakes.</p>
 
 
 <dl><dt id="arg-allele-freq">allele_freq<a class="anchor" aria-label="anchor" href="#arg-allele-freq"></a></dt>
-<dd><p>The allele frequency value to validate. Should be a numeric value between 0 and 1.</p></dd>
+<dd><p>The allele frequency value to validate. Should be a numeric
+value between 0 and 1.</p></dd>
 
 
 <dt id="arg-param-name">param_name<a class="anchor" aria-label="anchor" href="#arg-param-name"></a></dt>
-<dd><p>Character string specifying the parameter name (for error messages). Default is "allele_freq".</p></dd>
+<dd><p>Character string specifying the parameter name (for error
+messages). Default is "allele_freq".</p></dd>
 
 
 <dt id="arg-warn-threshold">warn_threshold<a class="anchor" aria-label="anchor" href="#arg-warn-threshold"></a></dt>
-<dd><p>Numeric value above which to issue a warning about unusually high allele frequency. Default is 0.01 (1%).</p></dd>
+<dd><p>Numeric value above which to issue a warning about unusually
+high allele frequency. Default is 0.01 (1%).</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Logical value TRUE if the allele frequency is valid, otherwise stops with an error message.</p>
+    <p>Logical value TRUE if the allele frequency is valid, otherwise stops
+with an error message.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The function checks:</p><ul><li><p>Whether the input is numeric</p></li>
 <li><p>Whether the input is a single value (not a vector)</p></li>
 <li><p>Whether the value is between 0 and 1 (inclusive)</p></li>
-<li><p>Whether the value is unusually high (&gt; warn_threshold), which may indicate the user provided carrier prevalence instead of allele frequency</p></li>
+<li><p>Whether the value is unusually high (&gt; warn_threshold), which may indicate
+the user provided carrier prevalence instead of allele frequency</p></li>
 <li><p>Whether the value is exactly 0 or 1, which may not be biologically meaningful</p></li>
 </ul></div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Valid allele frequencies</span></span></span>
-<span class="r-in"><span><span class="fu">validate_allele_freq</span><span class="op">(</span><span class="fl">0.0001</span><span class="op">)</span>  <span class="co"># Common for rare variants</span></span></span>
+<span class="r-in"><span><span class="fu">validate_allele_freq</span><span class="op">(</span><span class="fl">0.0001</span><span class="op">)</span> <span class="co"># Common for rare variants</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
 <span class="r-in"><span><span class="fu">validate_allele_freq</span><span class="op">(</span><span class="fl">0.001</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
@@ -105,16 +110,16 @@ The function also provides warnings for edge cases and common mistakes.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co"># Invalid inputs (will throw errors)</span></span></span>
-<span class="r-in"><span><span class="fu">validate_allele_freq</span><span class="op">(</span><span class="st">"0.001"</span><span class="op">)</span>       <span class="co"># Not numeric</span></span></span>
+<span class="r-in"><span><span class="fu">validate_allele_freq</span><span class="op">(</span><span class="st">"0.001"</span><span class="op">)</span>          <span class="co"># Not numeric</span></span></span>
 <span class="r-in"><span><span class="fu">validate_allele_freq</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.001</span>, <span class="fl">0.002</span><span class="op">)</span><span class="op">)</span>  <span class="co"># Vector instead of scalar</span></span></span>
-<span class="r-in"><span><span class="fu">validate_allele_freq</span><span class="op">(</span><span class="op">-</span><span class="fl">0.001</span><span class="op">)</span>       <span class="co"># Negative value</span></span></span>
-<span class="r-in"><span><span class="fu">validate_allele_freq</span><span class="op">(</span><span class="fl">1.5</span><span class="op">)</span>          <span class="co"># Greater than 1</span></span></span>
-<span class="r-in"><span><span class="fu">validate_allele_freq</span><span class="op">(</span><span class="cn">NA</span><span class="op">)</span>           <span class="co"># Missing value</span></span></span>
+<span class="r-in"><span><span class="fu">validate_allele_freq</span><span class="op">(</span><span class="op">-</span><span class="fl">0.001</span><span class="op">)</span>           <span class="co"># Negative value</span></span></span>
+<span class="r-in"><span><span class="fu">validate_allele_freq</span><span class="op">(</span><span class="fl">1.5</span><span class="op">)</span>              <span class="co"># Greater than 1</span></span></span>
+<span class="r-in"><span><span class="fu">validate_allele_freq</span><span class="op">(</span><span class="cn">NA</span><span class="op">)</span>               <span class="co"># Missing value</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Valid but will trigger warnings</span></span></span>
-<span class="r-in"><span><span class="fu">validate_allele_freq</span><span class="op">(</span><span class="fl">0.02</span><span class="op">)</span>         <span class="co"># Unusually high (&gt;1%), warning issued</span></span></span>
-<span class="r-in"><span><span class="fu">validate_allele_freq</span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>            <span class="co"># Edge case, warning issued</span></span></span>
-<span class="r-in"><span><span class="fu">validate_allele_freq</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>            <span class="co"># Edge case, warning issued</span></span></span>
+<span class="r-in"><span><span class="fu">validate_allele_freq</span><span class="op">(</span><span class="fl">0.02</span><span class="op">)</span>         <span class="co"># Unusually high (&gt;1%), warning</span></span></span>
+<span class="r-in"><span><span class="fu">validate_allele_freq</span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>            <span class="co"># Edge case, warning</span></span></span>
+<span class="r-in"><span><span class="fu">validate_allele_freq</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>            <span class="co"># Edge case, warning</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

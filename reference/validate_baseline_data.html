@@ -79,32 +79,39 @@ age-specific.</p>
 
 
 <dt id="arg-sex-specific">sex_specific<a class="anchor" aria-label="anchor" href="#arg-sex-specific"></a></dt>
-<dd><p>Logical, indicating whether the data is sex-specific. Default is TRUE.</p></dd>
+<dd><p>Logical, indicating whether the data is sex-specific.
+Default is TRUE.</p></dd>
 
 
 <dt id="arg-param-name">param_name<a class="anchor" aria-label="anchor" href="#arg-param-name"></a></dt>
-<dd><p>Character string specifying the parameter name (for messages). Default is "baseline_data".</p></dd>
+<dd><p>Character string specifying the parameter name (for messages).
+Default is "baseline_data".</p></dd>
 
 
 <dt id="arg-tolerance">tolerance<a class="anchor" aria-label="anchor" href="#arg-tolerance"></a></dt>
-<dd><p>Numeric value for checking strict monotonicity (to account for floating point precision). Default is 1e-10.</p></dd>
+<dd><p>Numeric value for checking strict monotonicity (to account for
+floating point precision). Default is 1e-10.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Logical value TRUE if validation passes (with possible warnings), otherwise stops with an error.</p>
+    <p>Logical value TRUE if validation passes (with possible warnings),
+otherwise stops with an error.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The function performs the following checks:</p><ul><li><p>For monotonicity: If values are strictly non-decreasing (monotone increasing), this suggests
-cumulative risk rather than age-specific probabilities. A warning is issued.</p></li>
-<li><p>For sum &gt; 1: If the sum of all probabilities exceeds 1, this is problematic because
-these should be age-specific probabilities. A warning is issued.</p></li>
+    <p>The function performs the following checks:</p><ul><li><p>For monotonicity: If values are strictly non-decreasing (monotonically
+increasing), this suggests cumulative risk rather than age-specific probabilities.
+A warning is issued.</p></li>
+<li><p>For sum &gt; 1: If the sum of all probabilities exceeds 1, this is
+problematic because these should be age-specific probabilities. A warning is
+issued.</p></li>
 <li><p>Individual values must be between 0 and 1 (probabilities)</p></li>
 <li><p>No NA or infinite values are allowed</p></li>
-</ul><p>Age-specific baseline risk represents the probability of developing disease at each specific age,
-while cumulative risk represents the total probability up to that age. For proper penetrance
-estimation, age-specific (not cumulative) risk should be used.</p>
+</ul><p>Age-specific baseline risk represents the probability of developing disease at
+each specific age, while cumulative risk represents the total probability up
+to that age. For proper penetrance estimation, age-specific (not cumulative)
+risk should be used.</p>
     </div>
 
     <div class="section level2">

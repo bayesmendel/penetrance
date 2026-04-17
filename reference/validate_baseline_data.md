@@ -52,7 +52,7 @@ otherwise stops with an error.
 
 The function performs the following checks:
 
-- For monotonicity: If values are strictly non-decreasing (monotone
+- For monotonicity: If values are strictly non-decreasing (monotonically
   increasing), this suggests cumulative risk rather than age-specific
   probabilities. A warning is issued.
 

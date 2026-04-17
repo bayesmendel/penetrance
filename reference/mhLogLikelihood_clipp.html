@@ -89,7 +89,9 @@
 
 
 <dt id="arg-prev">prev<a class="anchor" aria-label="anchor" href="#arg-prev"></a></dt>
-<dd><p>Numeric, the carrier prevalence (heterozygote frequency) in the population</p></dd>
+<dd><p>Numeric, the carrier prevalence (heterozygote frequency) in the
+population. This should be approximately 2p where p is the allele frequency
+when the allele is rare.</p></dd>
 
 
 <dt id="arg-geno-freq">geno_freq<a class="anchor" aria-label="anchor" href="#arg-geno-freq"></a></dt>
@@ -118,7 +120,7 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Create example parameters and data</span></span></span>
 <span class="r-in"><span><span class="va">paras</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.8</span>, <span class="fl">0.7</span>, <span class="fl">20</span>, <span class="fl">25</span>, <span class="fl">50</span>, <span class="fl">45</span>, <span class="fl">30</span>, <span class="fl">35</span><span class="op">)</span>  <span class="co"># Example parameters</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Create sample data in PanelPRO format</span></span></span>
+<span class="r-in"><span><span class="co"># Create sample data in Fam3PRO format</span></span></span>
 <span class="r-in"><span><span class="va">families</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  ID <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>,</span></span>
 <span class="r-in"><span>  PedigreeID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>,</span></span>

@@ -44,7 +44,8 @@ mhLogLikelihood_clipp(
 - prev:
 
   Numeric, the carrier prevalence (heterozygote frequency) in the
-  population
+  population. This should be approximately 2p where p is the allele
+  frequency when the allele is rare.
 
 - geno_freq:
 
@@ -72,7 +73,7 @@ Numeric value representing the calculated log likelihood.
 # Create example parameters and data
 paras <- c(0.8, 0.7, 20, 25, 50, 45, 30, 35)  # Example parameters
 
-# Create sample data in PanelPRO format
+# Create sample data in Fam3PRO format
 families <- data.frame(
   ID = 1:10,
   PedigreeID = rep(1, 10),

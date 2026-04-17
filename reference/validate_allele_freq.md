@@ -58,7 +58,7 @@ The function checks:
 
 ``` r
 # Valid allele frequencies
-validate_allele_freq(0.0001)  # Common for rare variants
+validate_allele_freq(0.0001) # Common for rare variants
 #> [1] TRUE
 validate_allele_freq(0.001)
 #> [1] TRUE
@@ -68,15 +68,15 @@ validate_allele_freq(0.05)
 
 if (FALSE) { # \dontrun{
 # Invalid inputs (will throw errors)
-validate_allele_freq("0.001")       # Not numeric
+validate_allele_freq("0.001")          # Not numeric
 validate_allele_freq(c(0.001, 0.002))  # Vector instead of scalar
-validate_allele_freq(-0.001)       # Negative value
-validate_allele_freq(1.5)          # Greater than 1
-validate_allele_freq(NA)           # Missing value
+validate_allele_freq(-0.001)           # Negative value
+validate_allele_freq(1.5)              # Greater than 1
+validate_allele_freq(NA)               # Missing value
 
 # Valid but will trigger warnings
-validate_allele_freq(0.02)         # Unusually high (>1%), warning issued
-validate_allele_freq(0)            # Edge case, warning issued
-validate_allele_freq(1)            # Edge case, warning issued
+validate_allele_freq(0.02)         # Unusually high (>1%), warning
+validate_allele_freq(0)            # Edge case, warning
+validate_allele_freq(1)            # Edge case, warning
 } # }
 ```

@@ -65,7 +65,7 @@ lik_noSex(
 
   Numeric, the carrier prevalence (heterozygote frequency) in the
   population. This should be approximately 2p where p is the allele
-  frequency for rare diseases.
+  frequency when the allele is rare.
 
 ## Value
 

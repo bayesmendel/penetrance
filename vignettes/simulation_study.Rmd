@@ -76,9 +76,12 @@ generating_penetrance <- data.frame(
 The families were simulated using the PedUtils Rpackage.   
 
 ```{r}
-
 dat <- simulated_families
-
+# geno column must be Geno
+dat <- lapply(dat, function(df) {
+  names(df)[names(df) == "geno"] <- "Geno"
+  df
+})
 ```
   
 ## Simple simulation
@@ -109,7 +112,7 @@ out_sim <- penetrance(
     pedigree  = dat, twins = NULL, n_chains = 1, n_iter_per_chain = 20000, 
     ncores = 2, baseline_data = baseline_data_default , allele_freq = prevMLH1, 
     prior_params = prior_params, burn_in = 0.1, median_max = TRUE,  
-    ageImputation = FALSE, removeProband = FALSE
+    age_imputation = FALSE, remove_proband = FALSE
 )
 
 ```

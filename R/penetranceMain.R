@@ -64,8 +64,7 @@
 #' Default is FALSE.
 #' @param median_max Logical, indicating whether to use the baseline median age 
 #' or `max_age` as an upper bound for the median proposal. Default is TRUE.
-#' @param BaselineNC Logical, indicating that the non-carrier penetrance is assumed 
-#' to be the baseline penetrance. Default is TRUE.
+#' @param BaselineNC Logical, indicating that the non-carrier penetrance is assumed to be the baseline penetrance. Currently only TRUE is supported. Setting FALSE will throw an error.
 #' @param var Numeric vector, variances for the proposal distribution in the 
 #' Metropolis-Hastings algorithm. Default is `c(0.1, 0.1, 2, 2, 5, 5, 5, 5)`.
 #' @param burn_in Numeric, the fraction of results to discard as burn-in (0 to 1). 
@@ -224,6 +223,11 @@ penetrance <- function(pedigree,
     if (!is.logical(param_value) || length(param_value) != 1 || is.na(param_value)) {
       stop(paste("Error: '", param_name, "' must be a single TRUE or FALSE value.", sep=""))
     }
+  }
+  
+  # Validate baselineNC (currently only TRUE is supported)
+  if (BaselineNC == FALSE) { 
+    stop("BaselineNC = FALSE is currently unsupported in this release; please use BaselineNC = TRUE or wait for a future update that includes this feature.")
   }
 
   # Validate other numeric/integer parameters

@@ -145,7 +145,7 @@ absValue <- function(x) {
 #' entire distribution).
 #' @param max_age Integer, maximum age considered in the analysis.
 #' @param baselineRisk Numeric matrix, baseline risk for each age by sex. 
-#' Rows correspond to sex (1 for male, 2 for female) and columns to age.
+#' Columns correspond to sex (1 for male, 2 for female) and rows to age.
 #' @param BaselineNC Logical, indicates if non-carrier penetrance should be based 
 #' on SEER data.
 #' @param prev Numeric, the carrier prevalence (heterozygote frequency) in the 
@@ -164,7 +164,7 @@ lik.fn <- function(i, data, alpha_male, alpha_female, beta_male, beta_female,
       data$age[i] == 0 || data$age[i] == 1) {
     lik.i <- c(1, 1) # Disregard these observations
   } else {
-    # Map sex to row index: "Female" is 1st row and "Male" is 2nd row
+    # Map sex to baselineRisk column name
     sex_index <- ifelse(data$sex[i] == 2, "Female", "Male")
     
     # Select parameters based on individual's sex

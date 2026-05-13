@@ -135,7 +135,7 @@ individuals (<code>aff = 1</code>), if a randomly drawn value is less
 than the relationship probability, the age is drawn from a Weibull
 distribution. The Weibull distribution parameters for males and females
 are
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>α</mi><mo>,</mo><mi>β</mi><mo>,</mo><mi>δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\alpha, \beta, \delta)</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>α</mi><mo>,</mo><mi>β</mi><mo>,</mo><mi>δ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\alpha, \beta, \delta)</annotation></semantics></math>.
 The quantile function of the Weibull distribution is used to draw the
 ages (separately for males and females). If the random draw exceeds the
 relationship probability, the age is drawn from the SEER data using the
@@ -166,13 +166,13 @@ to move the distribution along the age axis and an asymptote parameter
 which allows for incomplete penetrance and is interpreted as the
 lifetime probability of developing cancer. Hence, we have a vector of
 parameters
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>α</mi><mo>,</mo><mi>β</mi><mo>,</mo><mi>γ</mi><mo>,</mo><mi>δ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\theta = (\alpha, \beta, \gamma, \delta)</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>α</mi><mo>,</mo><mi>β</mi><mo>,</mo><mi>γ</mi><mo>,</mo><mi>δ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\theta = (\alpha, \beta, \gamma, \delta)</annotation></semantics></math>.
 Specifically, we model the density
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
 and corresponding cumulative distribution functions
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math>
 as:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>;</mo><mi>α</mi><mo>,</mo><mi>β</mi><mo>,</mo><mi>δ</mi><mo>,</mo><mi>γ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mi>γ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mi>α</mi><mi>β</mi></mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>x</mi><mo>−</mo><mi>δ</mi></mrow><mi>β</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>α</mi><mo>−</mo><mn>1</mn></mrow></msup><msup><mi>e</mi><mrow><mo>−</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>x</mi><mo>−</mo><mi>δ</mi></mrow><mi>β</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>α</mi></msup></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mi>x</mi><mo>≥</mo><mi>δ</mi></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>0</mn></mtd><mtd columnalign="left" style="text-align: left"><mi>x</mi><mo>&lt;</mo><mi>δ</mi></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>;</mo><mi>α</mi><mo>,</mo><mi>β</mi><mo>,</mo><mi>δ</mi><mo>,</mo><mi>γ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mi>γ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mi>α</mi><mi>β</mi></mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>x</mi><mo>−</mo><mi>δ</mi></mrow><mi>β</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>α</mi><mo>−</mo><mn>1</mn></mrow></msup><msup><mi>e</mi><mrow><mi>−</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mi>x</mi><mo>−</mo><mi>δ</mi></mrow><mi>β</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mi>α</mi></msup></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mi>x</mi><mo>≥</mo><mi>δ</mi></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>0</mn></mtd><mtd columnalign="left" style="text-align: left"><mi>x</mi><mo>&lt;</mo><mi>δ</mi></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
 f(x; \alpha, \beta, \delta, \gamma) = \begin{cases} 
 \gamma \left( \frac{\alpha}{\beta} \left( \frac{x - \delta}{\beta} \right)^{\alpha - 1} e^{ -\left( \frac{x - \delta}{\beta} \right)^\alpha } \right) &amp; x \geq \delta \\
 0 &amp; x &lt; \delta
@@ -186,7 +186,7 @@ distribution.</p>
 <h2 id="prior-specification">Prior Specification<a class="anchor" aria-label="anchor" href="#prior-specification"></a>
 </h2>
 <p>To run the MCMC algorithm, the prior distributions for
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>α</mi><mo>,</mo><mi>β</mi><mo>,</mo><mi>γ</mi><mo>,</mo><mi>δ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\theta = (\alpha, \beta, \gamma, \delta)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>α</mi><mo>,</mo><mi>β</mi><mo>,</mo><mi>γ</mi><mo>,</mo><mi>δ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\theta = (\alpha, \beta, \gamma, \delta)</annotation></semantics></math>
 need to be specified. The package provides the user with a flexible
 approach to prior specification, balancing customization with an
 easy-to-use workflow. The following settings for the prior distribution

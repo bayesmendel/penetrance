@@ -59,7 +59,7 @@ between two individuals is twice the kinship coefficient. For affected
 individuals (`aff = 1`), if a randomly drawn value is less than the
 relationship probability, the age is drawn from a Weibull distribution.
 The Weibull distribution parameters for males and females are
-$(\alpha,\beta,\delta)$. The quantile function of the Weibull
+$`(\alpha, \beta, \delta)`$. The quantile function of the Weibull
 distribution is used to draw the ages (separately for males and
 females). If the random draw exceeds the relationship probability, the
 age is drawn from the SEER data using the inverse CDF method. In this
@@ -82,25 +82,29 @@ clipp to efficiently compute likelihoods.
 To model the penetrance curve we choose the Weibull distribution which
 is widely used in reliability engineering and survival analysis. To
 provide further flexibility we extend the standard Weibull distribution
-to four parameters with an additional threshold parameter ($\delta$) to
-move the distribution along the age axis and an asymptote parameter
-($0 < \gamma < 1$) which allows for incomplete penetrance and is
+to four parameters with an additional threshold parameter ($`\delta`$)
+to move the distribution along the age axis and an asymptote parameter
+($`0 < \gamma < 1`$) which allows for incomplete penetrance and is
 interpreted as the lifetime probability of developing cancer. Hence, we
-have a vector of parameters $\theta = (\alpha,\beta,\gamma,\delta)$.
-Specifically, we model the density $f$ and corresponding cumulative
-distribution functions $F$ as:
+have a vector of parameters
+$`\theta = (\alpha, \beta, \gamma, \delta)`$. Specifically, we model the
+density $`f`$ and corresponding cumulative distribution functions $`F`$
+as:
 
-$$f(x;\alpha,\beta,\delta,\gamma) = \begin{cases}
-{\gamma\left( \frac{\alpha}{\beta}\left( \frac{x - \delta}{\beta} \right)^{\alpha - 1}e^{- {(\frac{x - \delta}{\beta})}^{\alpha}} \right)} & {x \geq \delta} \\
-0 & {x < \delta}
-\end{cases}$$ The MCMC estimation approach allows us to sample from the
-posterior distribution in an efficient way in order to infer the
-estimates of the parameters from the Weibull distribution.
+``` math
+f(x; \alpha, \beta, \delta, \gamma) = \begin{cases} 
+\gamma \left( \frac{\alpha}{\beta} \left( \frac{x - \delta}{\beta} \right)^{\alpha - 1} e^{ -\left( \frac{x - \delta}{\beta} \right)^\alpha } \right) & x \geq \delta \\
+0 & x < \delta
+\end{cases}
+```
+The MCMC estimation approach allows us to sample from the posterior
+distribution in an efficient way in order to infer the estimates of the
+parameters from the Weibull distribution.
 
 ## Prior Specification
 
 To run the MCMC algorithm, the prior distributions for
-$\theta = (\alpha,\beta,\gamma,\delta)$ need to be specified. The
+$`\theta = (\alpha, \beta, \gamma, \delta)`$ need to be specified. The
 package provides the user with a flexible approach to prior
 specification, balancing customization with an easy-to-use workflow. The
 following settings for the prior distribution specification are
@@ -113,6 +117,7 @@ automatically elicit customized priors. The default setting is adjusted
 to reflect the additional information based on the provided inputs.
 
 ``` r
+
 # The default prior 
 prior_params_default <- list(
     asymptote = list(g1 = 1, g2 = 1),
@@ -134,6 +139,7 @@ There are a few ways in which a user can specify how the estimation
 approach is run. Available options are:
 
 ``` r
+
 #' @param twins A list specifying identical twins or triplets in the family. For example, to indicate that "ora024" and "ora027" are identical twins, and "aey063" and "aey064" are identical twins, use the following format: `twins <- list(c("ora024", "ora027"), c("aey063", "aey064"))`.
 #' @param n_chains Integer, the number of chains for parallel computation. Default is 1.
 #' @param n_iter_per_chain Integer, the number of iterations for each chain. Default is 10000.
@@ -184,6 +190,7 @@ To run the algorithm, we require the user to input:
   baseline penetrance for females and males.
 
 ``` r
+
 # This is exemplary SEER penetrance data for Colorectal Cancer. 
 baseline_data_default <- data.frame(
   Age = 1:94,
@@ -224,6 +231,7 @@ baseline_data_default <- data.frame(
   applied in the, given that `ageImputation = FALSE`.
 
 ``` r
+
 output <- penetrance(
     pedigree  = dat, twins = NULL, n_chains = 1, n_iter_per_chain = 20000,
    ncores = 2, baseline_data = baseline_data_default, prev  = 0.0001, 
@@ -235,6 +243,7 @@ output <- penetrance(
 The exemplary output from the estimation procedure can be seen below.
 
 ``` r
+
 plot_penetrance(data = output$combined_chains, prob = 0.95)
 plot_pdf(data = output$combined_chains, prob = 0.95)
 ```

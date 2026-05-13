@@ -10,25 +10,32 @@ estimation of the parameters of the Weibull distribution.
 
 The data used for the simulation is available as `sim_fam.Rdata`. Recall
 the parameterization of the Weibull distribution.For the function
-$f(x;\alpha,\beta,\delta,\gamma)$ we define:
+$`f(x; \alpha, \beta, \delta, \gamma)`$ we define:
 
-$$f(x;\alpha,\beta,\delta,\gamma) = \begin{cases}
-{\gamma\left( \frac{\alpha}{\beta}\left( \frac{x - \delta}{\beta} \right)^{\alpha - 1}e^{- {(\frac{x - \delta}{\beta})}^{\alpha}} \right),} & {x \geq \delta} \\
-{0,} & {x < \delta}
-\end{cases}$$
+``` math
+f(x; \alpha, \beta, \delta, \gamma) = 
+\begin{cases} 
+\gamma \left( \frac{\alpha}{\beta} \left( \frac{x - \delta}{\beta} \right)^{\alpha - 1} e^{-\left( \frac{x - \delta}{\beta} \right)^\alpha } \right), & x \geq \delta \\
+0, & x < \delta
+\end{cases}
+```
 
 And for the cumulative distribution function
-$F(x;\alpha,\beta,\delta,\gamma)$:
+$`F(x; \alpha, \beta, \delta, \gamma)`$:
 
-$$F(x;\alpha,\beta,\delta,\gamma) = \begin{cases}
-{\gamma\left( 1 - e^{- {(\frac{x - \delta}{\beta})}^{\alpha}} \right),} & {x \geq \delta} \\
-{0,} & {x < \delta}
-\end{cases}$$
+``` math
+F(x; \alpha, \beta, \delta, \gamma) =
+\begin{cases} 
+\gamma \left( 1 - e^{-\left( \frac{x - \delta}{\beta} \right)^\alpha } \right), & x \geq \delta \\
+0, & x < \delta
+\end{cases}
+```
 
 The data-generating penetrance was constructed using the following
 parameters for the Weibull distribution.
 
 ``` r
+
 # Create generating_penetrance data frame
 age <- 1:94
 
@@ -56,7 +63,26 @@ generating_penetrance <- data.frame(
 The families were simulated using the PedUtils Rpackage.
 
 ``` r
+
 dat <- simulated_families
+
+# Data preparation: Ensure proper column naming and parent ID format
+# The simulated_families dataset uses 'geno' (lowercase) but the package expects 'Geno' (uppercase)
+# Also, parent IDs coded as 0 should be NA to properly denote missing parents
+dat <- lapply(dat, function(df) {
+  # Rename geno to Geno if needed
+  if ("geno" %in% names(df)) {
+    names(df)[names(df) == "geno"] <- "Geno"
+  }
+  # Convert parent IDs coded as 0 to NA (missing parents)
+  if ("MotherID" %in% names(df)) {
+    df$MotherID[df$MotherID == 0] <- NA
+  }
+  if ("FatherID" %in% names(df)) {
+    df$FatherID[df$FatherID == 0] <- NA
+  }
+  return(df)
+})
 ```
 
 ## Simple simulation
@@ -64,6 +90,7 @@ dat <- simulated_families
 Then we run the estimation using the default settings.
 
 ``` r
+
 # Set the random seed
 set.seed(2024)
 
@@ -97,6 +124,7 @@ distribution defined above and the penetrance curves (including credible
 intervals) from the estimation procedure.
 
 ``` r
+
 # Function to calculate Weibull cumulative density
 weibull_cumulative <- function(x, alpha, beta, threshold, asymptote) {
   pweibull(x - threshold, shape = alpha, scale = beta) * asymptote
@@ -203,6 +231,7 @@ plot_penetrance_comparison(
     ## Confidence Interval Coverage: 0.6702128
 
 ``` r
+
 # Plot for Male
 plot_penetrance_comparison(
   data = out_sim$combined_chains,

@@ -82,6 +82,7 @@ approximated posterior distribution, i.e. the estimated penetrance
 function.
 
 ``` r
+
 library(penetrance)
 ```
 
@@ -129,6 +130,7 @@ There are a few ways in which a user can specify how the estimation
 approach is run. Available options are:
 
 ``` r
+
 #' @param pedigree A data frame containing the pedigree data in the required format. It should include the following columns:
 #'   - `PedigreeID`:  A numeric value representing the unique identifier for each family. There should be no duplicated entries.
 #'   - `ID`: A numeric value representing the unique identifier for each individual. There should be no duplicated entries.
@@ -198,13 +200,14 @@ specification are available:
 - The PenEsim also includes an option for automatic age imputation
   `AgeImputation`. We apply an age imputation as part of the MCMC
   routine. The imputation of ages is performed based on the individual’s
-  affected status ($aff$), sex ($sex$), and their degree of relationship
-  to the proband who is a carrier of the PV. For greater detail on the
-  age imputation approach see documentation.
+  affected status ($`aff`$), sex ($`sex`$), and their degree of
+  relationship to the proband who is a carrier of the PV. For greater
+  detail on the age imputation approach see documentation.
 
 - For the likelihood calculation monozygous twins can be specified using
   the `twins` arguement.
 
 ``` r
+
 twins <- list(c("ora024", "ora027"), c("aey063", "aey064"))
 ```

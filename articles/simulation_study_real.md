@@ -15,6 +15,7 @@ of any pathogenic variant in MLH1 from the Fam3PRO Database.
 The families were simulated using the PedUtils Rpackage.
 
 ``` r
+
 dat <- test_fam2
 ```
 
@@ -23,6 +24,7 @@ dat <- test_fam2
 Then we run the estimation using the default settings.
 
 ``` r
+
 # Set the random seed
 set.seed(2024)
 

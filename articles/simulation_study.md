@@ -65,10 +65,23 @@ The families were simulated using the PedUtils Rpackage.
 ``` r
 
 dat <- simulated_families
-# geno column must be Geno
+
+# Data preparation: Ensure proper column naming and parent ID format
+# The simulated_families dataset uses 'geno' (lowercase) but the package expects 'Geno' (uppercase)
+# Also, parent IDs coded as 0 should be NA to properly denote missing parents
 dat <- lapply(dat, function(df) {
-  names(df)[names(df) == "geno"] <- "Geno"
-  df
+  # Rename geno to Geno if needed
+  if ("geno" %in% names(df)) {
+    names(df)[names(df) == "geno"] <- "Geno"
+  }
+  # Convert parent IDs coded as 0 to NA (missing parents)
+  if ("MotherID" %in% names(df)) {
+    df$MotherID[df$MotherID == 0] <- NA
+  }
+  if ("FatherID" %in% names(df)) {
+    df$FatherID[df$FatherID == 0] <- NA
+  }
+  return(df)
 })
 ```
 

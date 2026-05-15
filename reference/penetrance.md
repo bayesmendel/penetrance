@@ -156,7 +156,8 @@ penetrance(
 - BaselineNC:
 
   Logical, indicating that the non-carrier penetrance is assumed to be
-  the baseline penetrance. Default is TRUE.
+  the baseline penetrance. Currently only TRUE is supported. Setting
+  FALSE will throw an error.
 
 - var:
 

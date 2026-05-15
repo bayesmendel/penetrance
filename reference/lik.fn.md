@@ -78,8 +78,8 @@ lik.fn(
 
 - baselineRisk:
 
-  Numeric matrix, baseline risk for each age by sex. Rows correspond to
-  sex (1 for male, 2 for female) and columns to age.
+  Numeric matrix, baseline risk for each age by sex. Columns correspond
+  to sex (1 for male, 2 for female) and rows to age.
 
 - BaselineNC:
 

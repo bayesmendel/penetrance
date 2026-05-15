@@ -135,23 +135,10 @@ parameters for the Weibull distribution.</p>
 <p>The families were simulated using the PedUtils Rpackage.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="va">simulated_families</span></span>
-<span></span>
-<span><span class="co"># Data preparation: Ensure proper column naming and parent ID format</span></span>
-<span><span class="co"># The simulated_families dataset uses 'geno' (lowercase) but the package expects 'Geno' (uppercase)</span></span>
-<span><span class="co"># Also, parent IDs coded as 0 should be NA to properly denote missing parents</span></span>
+<span><span class="co"># geno column must be Geno</span></span>
 <span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">dat</span>, <span class="kw">function</span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="co"># Rename geno to Geno if needed</span></span>
-<span>  <span class="kw">if</span> <span class="op">(</span><span class="st">"geno"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">==</span> <span class="st">"geno"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"Geno"</span></span>
-<span>  <span class="op">}</span></span>
-<span>  <span class="co"># Convert parent IDs coded as 0 to NA (missing parents)</span></span>
-<span>  <span class="kw">if</span> <span class="op">(</span><span class="st">"MotherID"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">df</span><span class="op">$</span><span class="va">MotherID</span><span class="op">[</span><span class="va">df</span><span class="op">$</span><span class="va">MotherID</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span>
-<span>  <span class="op">}</span></span>
-<span>  <span class="kw">if</span> <span class="op">(</span><span class="st">"FatherID"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">df</span><span class="op">$</span><span class="va">FatherID</span><span class="op">[</span><span class="va">df</span><span class="op">$</span><span class="va">FatherID</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span>
-<span>  <span class="op">}</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">==</span> <span class="st">"geno"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"Geno"</span></span>
+<span>  <span class="va">df</span></span>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -181,7 +168,7 @@ parameters for the Weibull distribution.</p>
 <span>    pedigree  <span class="op">=</span> <span class="va">dat</span>, twins <span class="op">=</span> <span class="cn">NULL</span>, n_chains <span class="op">=</span> <span class="fl">1</span>, n_iter_per_chain <span class="op">=</span> <span class="fl">20000</span>, </span>
 <span>    ncores <span class="op">=</span> <span class="fl">2</span>, baseline_data <span class="op">=</span> <span class="va">baseline_data_default</span> , allele_freq <span class="op">=</span> <span class="va">prevMLH1</span>, </span>
 <span>    prior_params <span class="op">=</span> <span class="va">prior_params</span>, burn_in <span class="op">=</span> <span class="fl">0.1</span>, median_max <span class="op">=</span> <span class="cn">TRUE</span>,  </span>
-<span>    ageImputation <span class="op">=</span> <span class="cn">FALSE</span>, removeProband <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>    age_imputation <span class="op">=</span> <span class="cn">FALSE</span>, remove_proband <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">

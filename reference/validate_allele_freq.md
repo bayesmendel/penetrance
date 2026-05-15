@@ -34,8 +34,8 @@ validate_allele_freq(
 
 ## Value
 
-Logical value TRUE if the allele frequency is valid, otherwise stops
-with an error message.
+Logical value TRUE if the allele frequency is valid (with possible
+warnings), otherwise stops with an error message.
 
 ## Details
 

@@ -113,8 +113,7 @@ Default is FALSE.}
 \item{median_max}{Logical, indicating whether to use the baseline median age
 or \code{max_age} as an upper bound for the median proposal. Default is TRUE.}
 
-\item{BaselineNC}{Logical, indicating that the non-carrier penetrance is assumed
-to be the baseline penetrance. Default is TRUE.}
+\item{BaselineNC}{Logical, indicating that the non-carrier penetrance is assumed to be the baseline penetrance. Currently only TRUE is supported. Setting FALSE will throw an error.}
 
 \item{var}{Numeric vector, variances for the proposal distribution in the
 Metropolis-Hastings algorithm. Default is \code{c(0.1, 0.1, 2, 2, 5, 5, 5, 5)}.}

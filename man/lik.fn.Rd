@@ -49,7 +49,7 @@ entire distribution).}
 \item{max_age}{Integer, maximum age considered in the analysis.}
 
 \item{baselineRisk}{Numeric matrix, baseline risk for each age by sex.
-Rows correspond to sex (1 for male, 2 for female) and columns to age.}
+Columns correspond to sex (1 for male, 2 for female) and rows to age.}
 
 \item{BaselineNC}{Logical, indicates if non-carrier penetrance should be based
 on SEER data.}

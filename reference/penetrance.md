@@ -359,17 +359,17 @@ result <- penetrance(
 # View basic results
 head(result$summary_stats)
 #>   Median_Male    Median_Female   Threshold_Male  Threshold_Female
-#>  Min.   :39.83   Min.   :49.99   Min.   :34.91   Min.   :25.00   
-#>  1st Qu.:40.00   1st Qu.:49.99   1st Qu.:34.94   1st Qu.:25.00   
+#>  Min.   :40.00   Min.   :49.99   Min.   :34.78   Min.   :24.84   
+#>  1st Qu.:40.00   1st Qu.:50.00   1st Qu.:34.91   1st Qu.:25.00   
 #>  Median :40.00   Median :50.00   Median :35.00   Median :25.00   
-#>  Mean   :39.98   Mean   :50.00   Mean   :34.97   Mean   :25.05   
-#>  3rd Qu.:40.00   3rd Qu.:50.00   3rd Qu.:35.00   3rd Qu.:25.00   
-#>  Max.   :40.03   Max.   :50.00   Max.   :35.00   Max.   :25.29   
+#>  Mean   :40.04   Mean   :50.01   Mean   :34.94   Mean   :24.99   
+#>  3rd Qu.:40.03   3rd Qu.:50.00   3rd Qu.:35.00   3rd Qu.:25.00   
+#>  Max.   :40.17   Max.   :50.06   Max.   :35.00   Max.   :25.03   
 #>  First_Quartile_Male First_Quartile_Female Asymptote_Male   Asymptote_Female
-#>  Min.   :38.93       Min.   :32.50         Min.   :0.5139   Min.   :0.5571  
-#>  1st Qu.:39.00       1st Qu.:32.50         1st Qu.:0.5672   1st Qu.:0.7194  
+#>  Min.   :38.92       Min.   :32.44         Min.   :0.4056   Min.   :0.7194  
+#>  1st Qu.:39.00       1st Qu.:32.50         1st Qu.:0.5139   1st Qu.:0.7194  
 #>  Median :39.00       Median :32.50         Median :0.5672   Median :0.7194  
-#>  Mean   :39.02       Mean   :32.59         Mean   :0.5786   Mean   :0.7031  
-#>  3rd Qu.:39.00       3rd Qu.:32.63         3rd Qu.:0.5672   3rd Qu.:0.7194  
-#>  Max.   :39.14       Max.   :32.83         Max.   :0.6793   Max.   :0.7534  
+#>  Mean   :39.02       Mean   :32.52         Mean   :0.5252   Mean   :0.7688  
+#>  3rd Qu.:39.00       3rd Qu.:32.50         3rd Qu.:0.5672   3rd Qu.:0.7534  
+#>  Max.   :39.14       Max.   :32.63         Max.   :0.5672   Max.   :0.9546  
 ```

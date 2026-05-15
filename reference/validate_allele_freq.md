@@ -2,7 +2,7 @@
 
 This function validates whether the provided input is a valid allele
 frequency. Allele frequencies must be numeric, scalar, and within the
-range 0, 1. The function also provides warnings for edge cases and
+range `[0, 1]`. The function also provides warnings for edge cases and
 common mistakes.
 
 ## Usage

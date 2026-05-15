@@ -3,7 +3,7 @@
 # Penetrance R package
 
 An R package for the estimation of age-specific penetrance for complex
-family-based studies in a format compatible with with the PanelPRO R
+family-based studies in a format compatible with with the Fam3PRO R
 package.
 
 ## Motivation

@@ -21,8 +21,8 @@ messages). Default is "allele_freq".}
 high allele frequency. Default is 0.01 (1\%).}
 }
 \value{
-Logical value TRUE if the allele frequency is valid, otherwise stops
-with an error message.
+Logical value TRUE if the allele frequency is valid (with possible
+warnings), otherwise stops with an error message.
 }
 \description{
 This function validates whether the provided input is a valid allele frequency.

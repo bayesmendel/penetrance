@@ -196,8 +196,8 @@ transformDF <- function(df) {
 #' @param warn_threshold Numeric value above which to issue a warning about unusually 
 #' high allele frequency. Default is 0.01 (1%).
 #'
-#' @return Logical value TRUE if the allele frequency is valid, otherwise stops 
-#' with an error message.
+#' @return Logical value TRUE if the allele frequency is valid (with possible 
+#' warnings), otherwise stops with an error message.
 #'
 #' @details
 #' The function checks:

@@ -385,6 +385,9 @@ plot_weibull_curve_internal <- function(combined_chains, prob, max_age, sex = "N
     if (type == "cdf") {
       pweibull(x_values - threshold, shape = alpha, scale = beta) * asymptote
     } else {
+      # ORIGINAL: dweibull(x_values - threshold, shape = alpha, scale = beta) 
+      # Error when threshold is an integer AND alpha < 1 due to Inf value
+      # TEMPORARY FIX
       raw <- dweibull(x_values - threshold, shape = alpha, scale = beta)
       ifelse(is.finite(raw), raw, NA_real_) * asymptote
     }

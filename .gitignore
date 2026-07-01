@@ -14,9 +14,6 @@
 .DS_Store
 Thumbs.db
 
-# Working session context (local only)
-claude.md
-
 # R package build artifacts
 /doc/
 /Meta/

@@ -491,7 +491,7 @@ penetrance <- function(pedigree,
   # Select the appropriate combination chain function
   combine_function <- if (sex_specific) combine_chains else combine_chains_noSex
 
-  # Select the appropriatesummary function
+  # Select the appropriate summary function
   summary_function <- if (sex_specific) generate_summary else generate_summary_noSex
 
   # Extract samples from the chains

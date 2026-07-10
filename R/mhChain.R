@@ -149,6 +149,44 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
     ))
   }
 
+  init_one_group <- function(data_affected, lower_bound, upper_bound, baseline_cum_group) {
+    # Add better NA handling for threshold calculation
+    threshold <- if(length(data_affected$age) > 0 && sum(!is.na(data_affected$age)) > 0) {
+      quantile(data_affected$age, 0.1, na.rm = TRUE)
+    } else {
+      (lower_bound + upper_bound) / 2  # Use middle of allowed range as default
+    }
+    threshold <- pmax(pmin(threshold, upper_bound, na.rm = TRUE), lower_bound, na.rm = TRUE)
+
+    # Add better NA handling for median calculation
+    median_age <- if(length(data_affected$age) > 0 && sum(!is.na(data_affected$age)) > 0) {
+      median(data_affected$age, na.rm = TRUE)
+    } else {
+      50  # Default value when no data available
+    }
+
+    # Add better NA handling for first quartile calculation
+    first_quartile <- if(length(data_affected$age) > 0 && sum(!is.na(data_affected$age)) > 0) {
+      q25 <- quantile(data_affected$age, probs = 0.25, na.rm = TRUE)
+      max(min(q25, median_age - 1), threshold + 1)
+    } else {
+      threshold + 0.3 * (median_age - threshold)  # Default position between threshold and median
+    }
+
+    # Ensure parameter relationships are maintained
+    first_quartile <- max(first_quartile, threshold + 1)
+    median_age <- max(median_age, first_quartile + 1)
+
+    asymptote <- runif(1, max(baseline_cum_group), 1)
+
+    return(list(
+      asymptote = asymptote,
+      threshold = threshold,
+      median = median_age,
+      first_quartile = first_quartile
+    ))
+  }
+
   # Initialize variables for sex-specific or non-specific model
   if (sex_specific) {
     # Process baseline risk data for males and females
@@ -193,79 +231,29 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
 
     # Function to initialize parameters
     draw_initial_params <- function(data, prior_distributions) {
-      data_male_affected <- data[data$sex == 1 & data$aff == 1, ]
-      data_female_affected <- data[data$sex == 2 & data$aff == 1, ]
-
       lower_bound <- prior_distributions$prior_params$threshold$min
       upper_bound <- prior_distributions$prior_params$threshold$max
-
-      # Add better NA handling for threshold calculations
-      threshold_male <- if(length(data_male_affected$age) > 0 && sum(!is.na(data_male_affected$age)) > 0) {
-        quantile(data_male_affected$age, 0.1, na.rm = TRUE)
-      } else {
-        (lower_bound + upper_bound) / 2  # Use middle of allowed range as default
-      }
-      
-      threshold_female <- if(length(data_female_affected$age) > 0 && sum(!is.na(data_female_affected$age)) > 0) {
-        quantile(data_female_affected$age, 0.1, na.rm = TRUE)
-      } else {
-        (lower_bound + upper_bound) / 2  # Use middle of allowed range as default
-      }
-
-      threshold_male <- pmax(pmin(threshold_male, upper_bound, na.rm = TRUE), lower_bound, na.rm = TRUE)
-      threshold_female <- pmax(pmin(threshold_female, upper_bound, na.rm = TRUE), lower_bound, na.rm = TRUE)
-
-      # Add better NA handling for median calculations
-      median_male <- if(length(data_male_affected$age) > 0 && sum(!is.na(data_male_affected$age)) > 0) {
-        median(data_male_affected$age, na.rm = TRUE)
-      } else {
-        50  # Default value when no data available
-      }
-      
-      median_female <- if(length(data_female_affected$age) > 0 && sum(!is.na(data_female_affected$age)) > 0) {
-        median(data_female_affected$age, na.rm = TRUE)
-      } else {
-        50  # Default value when no data available
-      }
-
-      # Add better NA handling for first quartile calculations
-      first_quartile_male <- if(length(data_male_affected$age) > 0 && sum(!is.na(data_male_affected$age)) > 0) {
-        q25 <- quantile(data_male_affected$age, probs = 0.25, na.rm = TRUE)
-        max(min(q25, median_male - 1), threshold_male + 1)
-      } else {
-        threshold_male + 0.3 * (median_male - threshold_male)  # Default position between threshold and median
-      }
-      
-      first_quartile_female <- if(length(data_female_affected$age) > 0 && sum(!is.na(data_female_affected$age)) > 0) {
-        q25 <- quantile(data_female_affected$age, probs = 0.25, na.rm = TRUE)
-        max(min(q25, median_female - 1), threshold_female + 1)
-      } else {
-        threshold_female + 0.3 * (median_female - threshold_female)  # Default position between threshold and median
-      }
-      
-      # Ensure parameter relationships are maintained
-      first_quartile_male <- max(first_quartile_male, threshold_male + 1)
-      first_quartile_female <- max(first_quartile_female, threshold_female + 1)
-      
-      median_male <- max(median_male, first_quartile_male + 1)
-      median_female <- max(median_female, first_quartile_female + 1)
-
-      asymptote_male <- runif(1, max(baseline_male_cum), 1)
-      asymptote_female <- runif(1, max(baseline_female_cum), 1)
-
+      male <- init_one_group(data[data$sex == 1 & data$aff == 1, ], lower_bound, upper_bound, baseline_male_cum)
+      female <- init_one_group(data[data$sex == 2 & data$aff == 1, ], lower_bound, upper_bound, baseline_female_cum)
       return(list(
-        asymptote_male = asymptote_male,
-        asymptote_female = asymptote_female,
-        threshold_male = threshold_male,
-        threshold_female = threshold_female,
-        median_male = median_male,
-        median_female = median_female,
-        first_quartile_male = first_quartile_male,
-        first_quartile_female = first_quartile_female
+        asymptote_male = male$asymptote,
+        asymptote_female = female$asymptote,
+        threshold_male = male$threshold,
+        threshold_female = female$threshold,
+        median_male = male$median,
+        median_female = female$median,
+        first_quartile_male = male$first_quartile,
+        first_quartile_female = female$first_quartile
       ))
     }
   } else {
     # Use the baseline data directly as a vector for non-sex-specific
+    if (is.data.frame(baseline_data) && ncol(baseline_data) > 1) {
+      stop("Error: 'baseline_data' must have exactly one column when sex_specific = FALSE.")
+    }
+    if (is.data.frame(baseline_data)) {
+      baseline_data <- as.numeric(baseline_data[[1]])
+    }
     # Check if baseline data matches max_age
     if (length(baseline_data) != max_age) {
       warning(paste("Baseline data length (", length(baseline_data), ") does not match max_age (", max_age, "). Adjusting baseline data to match max_age.", sep=""))
@@ -292,46 +280,14 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
 
     # Function to initialize parameters
     draw_initial_params <- function(data, prior_distributions) {
-      data_affected <- data[data$aff == 1, ]
-
       lower_bound <- prior_distributions$prior_params$threshold$min
       upper_bound <- prior_distributions$prior_params$threshold$max
-
-      # Add better NA handling for threshold calculation
-      threshold <- if(length(data_affected$age) > 0 && sum(!is.na(data_affected$age)) > 0) {
-        quantile(data_affected$age, 0.1, na.rm = TRUE)
-      } else {
-        (lower_bound + upper_bound) / 2  # Use middle of allowed range as default
-      }
-
-      threshold <- pmax(pmin(threshold, upper_bound, na.rm = TRUE), lower_bound, na.rm = TRUE)
-
-      # Add better NA handling for median calculation
-      median_age <- if(length(data_affected$age) > 0 && sum(!is.na(data_affected$age)) > 0) {
-        median(data_affected$age, na.rm = TRUE)
-      } else {
-        50  # Default value when no data available
-      }
-
-      # Add better NA handling for first quartile calculation
-      first_quartile <- if(length(data_affected$age) > 0 && sum(!is.na(data_affected$age)) > 0) {
-        q25 <- quantile(data_affected$age, probs = 0.25, na.rm = TRUE)
-        min(q25, median_age - 1)
-      } else {
-        threshold + 0.3 * (median_age - threshold)  # Default position between threshold and median
-      }
-      
-      # Ensure parameter relationships are maintained 
-      first_quartile <- max(first_quartile, threshold + 1)
-      median_age <- max(median_age, first_quartile + 1)
-
-      asymptote <- runif(1, max(baseline_cum), 1)
-
+      noSex <- init_one_group(data[data$aff == 1, ], lower_bound, upper_bound, baseline_cum)
       return(list(
-        asymptote = asymptote,
-        threshold = threshold,
-        median = median_age,
-        first_quartile = first_quartile
+        asymptote = noSex$asymptote,
+        threshold = noSex$threshold,
+        median = noSex$median,
+        first_quartile = noSex$first_quartile
       ))
     }
   }
@@ -474,6 +430,101 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
     nrow = 4, ncol = 2, byrow = TRUE
   )
 
+  # Helper: dispatch loglikelihood to the sex-specific or combined function
+  call_loglikelihood <- function(params) {
+    if (sex_specific) {
+      mhLogLikelihood_clipp(
+        params, data, twins, max_age,
+        baseline_data, prev, geno_freq, trans, BaselineNC, ncores
+      )
+    } else {
+      mhLogLikelihood_clipp_noSex(
+        params, data, twins, max_age, baseline_data, prev, geno_freq, trans, BaselineNC, ncores
+      )
+    }
+  }
+
+  # Helper: validate that a proposal vector falls within the parameter constraints
+  check_proposal_valid <- function(proposal_vector) {
+    valid_proposal <- TRUE
+
+    if (sex_specific) {
+      # Asymptote checks (male and female must be strictly between 0 and 1)
+      if (proposal_vector[1] <= 0 || proposal_vector[1] >= 1) valid_proposal <- FALSE
+      if (proposal_vector[2] <= 0 || proposal_vector[2] >= 1) valid_proposal <- FALSE
+
+      # Threshold checks (male and female must be within prior bounds, strictly)
+      if (proposal_vector[3] <= prior_distributions$prior_params$threshold$min ||
+        proposal_vector[3] >= prior_distributions$prior_params$threshold$max) {
+        valid_proposal <- FALSE
+      }
+      if (proposal_vector[4] <= prior_distributions$prior_params$threshold$min ||
+        proposal_vector[4] >= prior_distributions$prior_params$threshold$max) {
+        valid_proposal <- FALSE
+      }
+
+      # First quartile must be strictly greater than the threshold (male and female)
+      if (proposal_vector[7] <= proposal_vector[3]) valid_proposal <- FALSE # First quartile male <= threshold male
+      if (proposal_vector[8] <= proposal_vector[4]) valid_proposal <- FALSE # First quartile female <= threshold female
+
+      # Median must be strictly greater than the first quartile (male and female)
+      if (proposal_vector[5] <= proposal_vector[7]) valid_proposal <- FALSE # Median male <= first quartile male
+      if (proposal_vector[6] <= proposal_vector[8]) valid_proposal <- FALSE # Median female <= first quartile female
+
+      # Median should not exceed baseline midpoint or max age (for both male and female)
+      if (median_max) {
+        if (proposal_vector[5] >= baseline_mid_male) valid_proposal <- FALSE # Median male >= baseline midpoint
+        if (proposal_vector[6] >= baseline_mid_female) valid_proposal <- FALSE # Median female >= baseline midpoint
+      } else {
+        if (proposal_vector[5] >= max_age) valid_proposal <- FALSE # Median male >= max age
+        if (proposal_vector[6] >= max_age) valid_proposal <- FALSE # Median female >= max age
+      }
+    } else {
+      # Non-sex-specific proposal checks
+      if (proposal_vector[1] <= 0 || proposal_vector[1] >= 1) valid_proposal <- FALSE # Asymptote must be strictly between 0 and 1
+
+      # Threshold check
+      if (proposal_vector[2] <= prior_distributions$prior_params$threshold$min ||
+        proposal_vector[2] >= prior_distributions$prior_params$threshold$max) {
+        valid_proposal <- FALSE
+      }
+
+      # First quartile must be strictly greater than the threshold
+      if (proposal_vector[4] <= proposal_vector[2]) valid_proposal <- FALSE # First quartile <= threshold
+
+      # Median must be strictly greater than the first quartile
+      if (proposal_vector[3] <= proposal_vector[4]) valid_proposal <- FALSE # Median <= first quartile
+
+      # Median baseline check
+      if (median_max) {
+        if (proposal_vector[3] >= baseline_mid) valid_proposal <- FALSE # Median >= baseline midpoint
+      } else {
+        if (proposal_vector[3] >= max_age) valid_proposal <- FALSE # Median >= max age
+      }
+    }
+
+    return(valid_proposal)
+  }
+
+  # Helper: store the accepted current parameters into the output list for iteration i
+  store_samples <- function(params_current, i) {
+    if (sex_specific) {
+      out$asymptote_male_samples[i] <<- params_current$asymptote_male
+      out$asymptote_female_samples[i] <<- params_current$asymptote_female
+      out$threshold_male_samples[i] <<- params_current$threshold_male
+      out$threshold_female_samples[i] <<- params_current$threshold_female
+      out$median_male_samples[i] <<- params_current$median_male
+      out$median_female_samples[i] <<- params_current$median_female
+      out$first_quartile_male_samples[i] <<- params_current$first_quartile_male
+      out$first_quartile_female_samples[i] <<- params_current$first_quartile_female
+    } else {
+      out$asymptote_samples[i] <<- params_current$asymptote
+      out$threshold_samples[i] <<- params_current$threshold
+      out$median_samples[i] <<- params_current$median
+      out$first_quartile_samples[i] <<- params_current$first_quartile
+    }
+  }
+
   # Main loop of Metropolis-Hastings algorithm
   for (i in 1:n_iter) {
     if (sex_specific) {
@@ -542,11 +593,6 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
         first_quartile_female = proposal_vector[8]
       )
 
-      loglikelihood_current <- mhLogLikelihood_clipp(
-        params_current, data, twins, max_age,
-        baseline_data, prev, geno_freq, trans, BaselineNC, ncores
-      )
-      logprior_current <- calculate_log_prior(params_current, prior_distributions, max_age)
     } else {
       # Non-sex-specific
       weibull_params <- calculate_weibull_parameters(params_current$median, params_current$first_quartile, params_current$threshold)
@@ -592,87 +638,21 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
         first_quartile = proposal_vector[4]
       )
 
-      loglikelihood_current <- mhLogLikelihood_clipp_noSex(
-        params_current, data, twins, max_age, baseline_data, prev, geno_freq, trans, BaselineNC, ncores
-      )
-      logprior_current <- calculate_log_prior(params_current, prior_distributions, max_age)
     }
+
+    loglikelihood_current <- call_loglikelihood(params_current)
+    logprior_current <- calculate_log_prior(params_current, prior_distributions, max_age)
 
     # Record the outputs of the evaluation for the current set of parameters
     out$loglikelihood_current[i] <- loglikelihood_current$loglik
     out$logprior_current[i] <- logprior_current
 
-    # Initialize valid proposal
-    valid_proposal <- TRUE
-
-    # Explicit checks for sex-specific parameters
-    if (sex_specific) {
-      # Asymptote checks (male and female must be strictly between 0 and 1)
-      if (proposal_vector[1] <= 0 || proposal_vector[1] >= 1) valid_proposal <- FALSE
-      if (proposal_vector[2] <= 0 || proposal_vector[2] >= 1) valid_proposal <- FALSE
-
-      # Threshold checks (male and female must be within prior bounds, strictly)
-      if (proposal_vector[3] <= prior_distributions$prior_params$threshold$min ||
-        proposal_vector[3] >= prior_distributions$prior_params$threshold$max) {
-        valid_proposal <- FALSE
-      }
-      if (proposal_vector[4] <= prior_distributions$prior_params$threshold$min ||
-        proposal_vector[4] >= prior_distributions$prior_params$threshold$max) {
-        valid_proposal <- FALSE
-      }
-
-      # First quartile must be strictly greater than the threshold (male and female)
-      if (proposal_vector[7] <= proposal_vector[3]) valid_proposal <- FALSE # First quartile male <= threshold male
-      if (proposal_vector[8] <= proposal_vector[4]) valid_proposal <- FALSE # First quartile female <= threshold female
-
-      # Median must be strictly greater than the first quartile (male and female)
-      if (proposal_vector[5] <= proposal_vector[7]) valid_proposal <- FALSE # Median male <= first quartile male
-      if (proposal_vector[6] <= proposal_vector[8]) valid_proposal <- FALSE # Median female <= first quartile female
-
-      # Median should not exceed baseline midpoint or max age (for both male and female)
-      if (median_max) {
-        if (proposal_vector[5] >= baseline_mid_male) valid_proposal <- FALSE # Median male >= baseline midpoint
-        if (proposal_vector[6] >= baseline_mid_female) valid_proposal <- FALSE # Median female >= baseline midpoint
-      } else {
-        if (proposal_vector[5] >= max_age) valid_proposal <- FALSE # Median male >= max age
-        if (proposal_vector[6] >= max_age) valid_proposal <- FALSE # Median female >= max age
-      }
-    } else {
-      # Non-sex-specific proposal checks
-      if (proposal_vector[1] <= 0 || proposal_vector[1] >= 1) valid_proposal <- FALSE # Asymptote must be strictly between 0 and 1
-
-      # Threshold check
-      if (proposal_vector[2] <= prior_distributions$prior_params$threshold$min ||
-        proposal_vector[2] >= prior_distributions$prior_params$threshold$max) {
-        valid_proposal <- FALSE
-      }
-
-      # First quartile must be strictly greater than the threshold
-      if (proposal_vector[4] <= proposal_vector[2]) valid_proposal <- FALSE # First quartile <= threshold
-
-      # Median must be strictly greater than the first quartile
-      if (proposal_vector[3] <= proposal_vector[4]) valid_proposal <- FALSE # Median <= first quartile
-
-      # Median baseline check
-      if (median_max) {
-        if (proposal_vector[3] >= baseline_mid) valid_proposal <- FALSE # Median >= baseline midpoint
-      } else {
-        if (proposal_vector[3] >= max_age) valid_proposal <- FALSE # Median >= max age
-      }
-    }
+    # Check whether the proposal falls within valid parameter constraints
+    valid_proposal <- check_proposal_valid(proposal_vector)
 
     # If valid proposal, calculate the acceptance ratio and store
     if (valid_proposal) {
-      if (sex_specific) {
-        loglikelihood_proposal <- mhLogLikelihood_clipp(
-          params_proposal, data, twins, max_age,
-          baseline_data, prev, geno_freq, trans, BaselineNC, ncores
-        )
-      } else {
-        loglikelihood_proposal <- mhLogLikelihood_clipp_noSex(
-          params_proposal, data, twins, max_age, baseline_data, prev, geno_freq, trans, BaselineNC, ncores
-        )
-      }
+      loglikelihood_proposal <- call_loglikelihood(params_proposal)
       logprior_proposal <- calculate_log_prior(params_proposal, prior_distributions, max_age)
       log_acceptance_ratio <- (loglikelihood_proposal$loglik + logprior_proposal) - (loglikelihood_current$loglik + logprior_current)
 
@@ -697,22 +677,8 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
       C <- sd * cov(do.call(rbind, current_states)) + eps * sd * diag(num_pars)
     }
 
-    # Store current parameters in the output (same as before)
-    if (sex_specific) {
-      out$asymptote_male_samples[i] <- params_current$asymptote_male
-      out$asymptote_female_samples[i] <- params_current$asymptote_female
-      out$threshold_male_samples[i] <- params_current$threshold_male
-      out$threshold_female_samples[i] <- params_current$threshold_female
-      out$median_male_samples[i] <- params_current$median_male
-      out$median_female_samples[i] <- params_current$median_female
-      out$first_quartile_male_samples[i] <- params_current$first_quartile_male
-      out$first_quartile_female_samples[i] <- params_current$first_quartile_female
-    } else {
-      out$asymptote_samples[i] <- params_current$asymptote
-      out$threshold_samples[i] <- params_current$threshold
-      out$median_samples[i] <- params_current$median
-      out$first_quartile_samples[i] <- params_current$first_quartile
-    }
+    # Store current parameters in the output
+    store_samples(params_current, i)
 
     out$C[[i]] <- C
   }

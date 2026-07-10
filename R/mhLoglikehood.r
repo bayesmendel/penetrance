@@ -123,10 +123,66 @@ absValue <- function(x) {
   return(abs(x))
 }
 
+# Private helper: compute the likelihood contribution for one individual given
+# pre-resolved scalar Weibull parameters and a single baseline risk vector.
+# Called by lik.fn (after sex-based parameter selection) and lik_noSex directly.
+lik_individual <- function(i, data, alpha, beta, delta, gamma, max_age, baselineRisk_vec, BaselineNC, prev) {
+  # Check for NA age or affection status, or very young age
+  if (is.na(data$age[i]) || is.na(data$aff[i]) || data$age[i] == 0 || data$age[i] == 1) {
+    return(c(1, 1)) # Disregard these observations
+  }
+
+  # Ensure age is within the valid range
+  age_index <- min(max_age, data$age[i])
+
+  # Weibull survival probability and yearly penetrance for carriers
+  c.surv.prob <- function(a) {
+    1 - pweibull(pmax(a - delta, 1), shape = alpha, scale = beta) * gamma
+  }
+  c.pen <- (pweibull(max(age_index - delta, 1), shape = alpha, scale = beta)
+            - pweibull(max(age_index - 1 - delta, 1), shape = alpha, scale = beta)) * gamma
+
+  # Extract the corresponding baseline risk for age
+  SEER_baseline_max <- baselineRisk_vec[1:age_index]
+  SEER_baseline_i <- baselineRisk_vec
+
+  # Calculate cumulative risk for non-carriers based on SEER data or other model
+  # BaselineNC = FALSE is not supported in the current implementation
+  if (BaselineNC == TRUE) {
+    nc.pen <- SEER_baseline_i[age_index]
+    nc.surv.prob <- 1 - cumsum(SEER_baseline_i)
+  } else {
+    nc.pen <- calculateNCPen(
+      SEER_baseline = SEER_baseline_max, alpha = alpha,
+      beta = beta, delta = delta, gamma = gamma, prev = prev, max_age = max_age
+    )$weightedCarrierRisk[age_index]
+    nc.pen.c <- calculateNCPen(
+      SEER_baseline = SEER_baseline_max, alpha = alpha,
+      beta = beta, delta = delta, gamma = gamma, prev = prev, max_age = max_age
+    )$cumulativeProb[age_index]
+  }
+
+  # Penetrance calculations based on affection status
+  if (data$aff[i] == 1) {
+    # For affected observations
+    lik.i <- c(nc.pen * nc.surv.prob[age_index - 1],
+               c.pen * c.surv.prob(age_index - 1))
+  } else {
+    # For censored/unaffected observations
+    lik.i <- c(nc.surv.prob[age_index], c.surv.prob(age_index))
+  }
+
+  # Adjustment for observed genotypes
+  if (data$geno[i] == "1/1") lik.i[-1] <- 1e-8
+  if (data$geno[i] == "1/2") lik.i[-2] <- 1e-8
+
+  return(lik.i)
+}
+
 #' Penetrance Function
 #'
 #' Calculates the penetrance for an individual based on Weibull distribution parameters.
-#' This function estimates the probability of developing cancer given the 
+#' This function estimates the probability of developing cancer given the
 #' individual's genetic and demographic information.
 #'
 #' @param i Integer, index of the individual in the data set.
@@ -158,69 +214,20 @@ absValue <- function(x) {
 lik.fn <- function(i, data, alpha_male, alpha_female, beta_male, beta_female,
                    delta_male, delta_female, gamma_male, gamma_female, max_age,
                    baselineRisk, BaselineNC, prev) {
-  
-  # Check for NA sex, age, or affection status, or very young age
-  if (is.na(data$sex[i]) || is.na(data$age[i]) || is.na(data$aff[i]) || 
-      data$age[i] == 0 || data$age[i] == 1) {
-    lik.i <- c(1, 1) # Disregard these observations
-  } else {
-    # Map sex to baselineRisk column name
-    sex_index <- ifelse(data$sex[i] == 2, "Female", "Male")
-    
-    # Select parameters based on individual's sex
-    alpha <- ifelse(data$sex[i] == 1, alpha_male, alpha_female)
-    beta <- ifelse(data$sex[i] == 1, beta_male, beta_female)
-    gamma <- ifelse(data$sex[i] == 1, gamma_male, gamma_female)
-    delta <- ifelse(data$sex[i] == 1, delta_male, delta_female)
-    
-    # Ensure age is within the valid range
-    age_index <- min(max_age, data$age[i])
-    
-    # Weibull parameters for penetrance, using sex-specific parameters
-    c.surv.prob <- function(a) {
-      1 - pweibull(pmax(a - delta, 1), shape = alpha, scale = beta) * gamma
-    }
-    c.pen <- (pweibull(max(age_index - delta, 1), shape = alpha, scale = beta)
-              - pweibull(max(age_index - 1 - delta, 1), shape = alpha, scale = beta)) * gamma
-    
-    # Extract the corresponding baseline risk for sex and age
-    SEER_baseline_max <- baselineRisk[1:age_index, sex_index]
-    SEER_baseline_cum <- cumsum(baselineRisk[, sex_index])[age_index]
-    SEER_baseline_i <- baselineRisk[, sex_index]
-    
-    # Calculate cumulative risk for non-carriers based on SEER data or other model
-    # BaselineNC = FALSE is not supported in the current implementation
-    if (BaselineNC == TRUE) {
-      nc.pen <- SEER_baseline_i[age_index]
-      nc.surv.prob <-  1 - cumsum(SEER_baseline_i)
-    } else {
-      nc.pen <- calculateNCPen(
-        SEER_baseline = SEER_baseline_max, alpha = alpha,
-        beta = beta, delta = delta, gamma = gamma, prev = prev, max_age = max_age
-      )$weightedCarrierRisk[age_index]
-      nc.pen.c <- calculateNCPen(
-        SEER_baseline = SEER_baseline_max, alpha = alpha,
-        beta = beta, delta = delta, gamma = gamma, prev = prev, max_age = max_age
-      )$cumulativeProb[age_index]
-    }
-    
-    # Penetrance calculations based on genotype and affection status
-    if (data$aff[i] == 1) {
-      # For affected observations
-        lik.i <- c(nc.pen * nc.surv.prob[age_index-1], 
-                   c.pen*c.surv.prob(age_index-1))
-    } else {
-      # For censored/unaffected observations
-      lik.i <- c(nc.surv.prob[age_index], c.surv.prob(age_index))
-      
-    }
-  }
-  
-  # Adjustment for observed genotypes
-  if (data$geno[i] == "1/1") lik.i[-1] <- 1e-8
-  if (data$geno[i] == "1/2") lik.i[-2] <- 1e-8
-  
-  return(lik.i)
+
+  # Check for NA sex
+  if (is.na(data$sex[i])) return(c(1, 1))
+
+  # Map sex to baselineRisk column name
+  sex_index <- ifelse(data$sex[i] == 2, "Female", "Male")
+
+  # Select parameters based on individual's sex
+  alpha <- ifelse(data$sex[i] == 1, alpha_male, alpha_female)
+  beta <- ifelse(data$sex[i] == 1, beta_male, beta_female)
+  gamma <- ifelse(data$sex[i] == 1, gamma_male, gamma_female)
+  delta <- ifelse(data$sex[i] == 1, delta_male, delta_female)
+
+  lik_individual(i, data, alpha, beta, delta, gamma, max_age, baselineRisk[, sex_index], BaselineNC, prev)
 }
 
 #' Calculate Log Likelihood using clipp Package
@@ -415,53 +422,5 @@ mhLogLikelihood_clipp_noSex <- function(paras, families, twins, max_age, baselin
 #' individuals.
 #'
 lik_noSex <- function(i, data, alpha, beta, delta, gamma, max_age, baselineRisk, BaselineNC, prev) {
-  # Check for NA age, affection status, or very young age
-  if (is.na(data$age[i]) || is.na(data$aff[i]) || data$age[i] == 0 || data$age[i] == 1) {
-    lik.i <- c(1, 1)  # Disregard these observations
-  } else {
-    # Ensure age is within the valid range
-    age_index <- min(max_age, data$age[i])
-    
-    # Weibull parameters for penetrance, using a single set of parameters
-    c.surv.prob <- function(a) {
-      1 - pweibull(pmax(a - delta, 1), shape = alpha, scale = beta) * gamma
-    }
-    c.pen <- (pweibull(max(age_index - delta, 1), shape = alpha, scale = beta)
-              - pweibull(max(age_index - 1 - delta, 1), shape = alpha, scale = beta)) * gamma
-    
-    # Extract the corresponding baseline risk for the age
-    SEER_baseline_max <- baselineRisk[1:age_index]
-    SEER_baseline_cum <- cumsum(baselineRisk)[age_index]
-    SEER_baseline_i <- baselineRisk
-    
-    # Calculate cumulative risk for non-carriers based on SEER data or other model
-    # BaselineNC = FALSE is not supported in the current implementation
-    if (BaselineNC == TRUE) {
-      nc.pen <- SEER_baseline_i[age_index]
-      nc.surv.prob <- 1 - cumsum(SEER_baseline_i)
-    } else {
-      nc_pen_results <- calculateNCPen(
-        SEER_baseline = SEER_baseline_max, alpha = alpha,
-        beta = beta, delta = delta, gamma = gamma, prev = prev, max_age = max_age
-      )
-      nc.pen <- nc_pen_results$weightedCarrierRisk[age_index]
-      nc.pen.c <- nc_pen_results$cumulativeProb[age_index]
-    }
-    
-    # Penetrance calculations based on genotype and affection status
-    if (data$aff[i] == 1) {
-      # For affected observations
-      lik.i <- c(nc.pen * nc.surv.prob[age_index - 1],
-                 c.pen * c.surv.prob(age_index - 1))
-    } else {
-      # For censored/unaffected observations
-      lik.i <- c(nc.surv.prob[age_index], c.surv.prob(age_index))
-    }
-  }
-  
-  # Adjustment for observed genotypes, setting other genotypes to small value to 
-  # avoid numerical instability
-  if (data$geno[i] == "1/1") lik.i[-1] <- 1e-8
-  if (data$geno[i] == "1/2") lik.i[-2] <- 1e-8
-  return(lik.i)
+  lik_individual(i, data, alpha, beta, delta, gamma, max_age, baselineRisk, BaselineNC, prev)
 }

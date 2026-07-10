@@ -325,6 +325,21 @@ imputeAgesInit <- function(data, threshold, max_age) {
 #' @param sex_specific Logical; whether to calculate sex-specific densities
 #'
 #' @return A list of density objects for different subgroups (tested/untested, male/female)
+#'
+#' @examples
+#' # Create sample data
+#' data <- data.frame(
+#'   sex = c(1, 1, 2, 2),
+#'   aff = c(0, 0, 0, 0),
+#'   age = c(45, 50, 35, 40),
+#'   geno = c("1/2", NA, "1/2", NA)
+#' )
+#'
+#' # Calculate density with sex-specific parameters
+#' density_sex <- calculateEmpiricalDensity(data, sex_specific = TRUE)
+#'
+#' # Calculate density without sex-specific parameters
+#' density_nosex <- calculateEmpiricalDensity(data, sex_specific = FALSE)
 #' @export
 calculateEmpiricalDensity <- function(data, aff_column = "aff", age_column = "age", sex_column = "sex", 
                                     geno_column = "geno", n_points = 10000, sex_specific = TRUE) {
@@ -494,51 +509,3 @@ imputeUnaffectedAges <- function(data, na_indices, empirical_density, max_age) {
 
   return(data)
 }
-
-#' Impute Missing Ages in Family-Based Data
-#'
-#' @examples
-#' # Create sample data
-#' data <- data.frame(
-#'   family = c(1, 1, 1),
-#'   individual = c(1, 2, 3),
-#'   father = c(NA, 1, 1),
-#'   mother = c(NA, 2, 2),
-#'   sex = c(1, 2, 1),
-#'   aff = c(1, 0, NA),
-#'   age = c(45, NA, 20),
-#'   geno = c("1/2", NA, NA),
-#'   isProband = c(1, 0, 0)
-#' )
-#' 
-#' # Initialize parameters
-#' na_indices <- which(is.na(data$age))
-#' max_age <- 94
-#' geno_freq <- c(0.999, 0.001)
-#' trans <- matrix(c(1, 0, 0.5, 0.5), nrow = 2)
-#' lik <- matrix(1, nrow = nrow(data), ncol = 2)
-#' 
-#' # Impute ages
-#' imputed_data <- imputeAges(
-#'   data = data,
-#'   na_indices = na_indices,
-#'   max_age = max_age,
-#'   geno_freq = geno_freq,
-#'   trans = trans,
-#'   lik = lik
-#' )
-
-#' @examples
-#' # Create sample data
-#' data <- data.frame(
-#'   sex = c(1, 1, 2, 2),
-#'   aff = c(0, 0, 0, 0),
-#'   age = c(45, 50, 35, 40),
-#'   geno = c("1/2", NA, "1/2", NA)
-#' )
-#' 
-#' # Calculate density with sex-specific parameters
-#' density_sex <- calculateEmpiricalDensity(data, sex_specific = TRUE)
-#' 
-#' # Calculate density without sex-specific parameters
-#' density_nosex <- calculateEmpiricalDensity(data, sex_specific = FALSE)

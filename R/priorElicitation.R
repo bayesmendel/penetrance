@@ -55,7 +55,7 @@ distribution_data_default <- data.frame(
 #' It is designed to aid in the statistical analysis of risk proportions in populations, particularly in the context of cancer research.
 #' The distributions are calculated for various statistical metrics such as asymptote, threshold, median, and first quartile.
 #'
-#' @param data A data frame containing age and risk data. If NULL or contains NA values, default parameters are used.
+#' @param data A data frame containing age and risk data. If NULL or entirely NA, default parameters are used. If provided, all entries in the age column must be numeric and non-NA.
 #' @param sample_size Numeric, the total sample size used for risk proportion calculations.
 #' @param ratio Numeric, the odds ratio (OR) or relative risk (RR) used in asymptote parameter calculations.
 #' @param prior_params List, containing prior parameters for the beta distributions. If NULL, default parameters are used.
@@ -107,7 +107,22 @@ makePriors <- function(data, sample_size, ratio, prior_params, risk_proportion, 
   }
   
   if (is.null(data) || all(is.na(data))) {
-    prior_params <- prior_params
+    if (!is.null(prior_params)) {
+      if (!is.numeric(prior_params$asymptote$g1) || prior_params$asymptote$g1 <= 0)
+        stop("Error: 'prior_params$asymptote$g1' must be a positive numeric value.")
+      if (!is.numeric(prior_params$asymptote$g2) || prior_params$asymptote$g2 <= 0)
+        stop("Error: 'prior_params$asymptote$g2' must be a positive numeric value.")
+      if (!is.numeric(prior_params$median$m1) || prior_params$median$m1 <= 0)
+        stop("Error: 'prior_params$median$m1' must be a positive numeric value.")
+      if (!is.numeric(prior_params$median$m2) || prior_params$median$m2 <= 0)
+        stop("Error: 'prior_params$median$m2' must be a positive numeric value.")
+      if (!is.numeric(prior_params$first_quartile$q1) || prior_params$first_quartile$q1 <= 0)
+        stop("Error: 'prior_params$first_quartile$q1' must be a positive numeric value.")
+      if (!is.numeric(prior_params$first_quartile$q2) || prior_params$first_quartile$q2 <= 0)
+        stop("Error: 'prior_params$first_quartile$q2' must be a positive numeric value.")
+      if (prior_params$threshold$min >= prior_params$threshold$max)
+        stop("Error: 'prior_params$threshold$min' must be less than 'prior_params$threshold$max'.")
+    }
   } else {
     if (any(is.na(data$age)) || any(!sapply(data$age, is.numeric))) {
       stop("Missing or non-numeric age entries in the data. Add numeric ages.")

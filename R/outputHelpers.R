@@ -109,10 +109,10 @@ generate_density_plots <- function(data) {
   } else {
     # Plot non-sex-specific parameters
     plot_names <- list(
-      "median_results" = data$median_samples,
-      "first_quartile_results" = data$first_quartile_samples,
-      "asymptote_results" = data$asymptote_samples,
-      "threshold_results" = data$threshold_samples
+      "median_results" = data$median_results,
+      "first_quartile_results" = data$first_quartile_results,
+      "asymptote_results" = data$asymptote_results,
+      "threshold_results" = data$threshold_results
     )
   }
   
@@ -255,7 +255,7 @@ printRejectionRates <- function(results, verbose = TRUE) {
 #' Apply Burn-In
 #'
 #' @param results A list of MCMC chain results.
-#' @param burn_in The fraction roportion of results to discard as burn-in (0 to 1). The default is no burn-in, burn_in=0.
+#' @param burn_in The fraction or proportion of results to discard as burn-in (0 to 1). The default is no burn-in, burn_in=0.
 #'
 #' @return A list of results with burn-in applied.
 #'
@@ -339,9 +339,125 @@ apply_thinning <- function(results, thinning_factor) {
 # thinned_results <- apply_thinning(out_OC_PALB2$results, 5)
 
 
+plot_weibull_curve_internal <- function(combined_chains, prob, max_age, sex = "NA", type = c("cdf", "pdf")) {
+  type <- match.arg(type)
+
+  if (prob <= 0 || prob >= 1) {
+    stop("prob must be between 0 and 1")
+  }
+
+  sex_specific <- !is.null(combined_chains$median_male_results) && !is.null(combined_chains$median_female_results)
+
+  if (sex_specific) {
+    params_male <- calculate_weibull_parameters(
+      combined_chains$median_male_results,
+      combined_chains$first_quartile_male_results,
+      combined_chains$threshold_male_results
+    )
+    params_female <- calculate_weibull_parameters(
+      combined_chains$median_female_results,
+      combined_chains$first_quartile_female_results,
+      combined_chains$threshold_female_results
+    )
+    alphas_male <- params_male$alpha
+    betas_male <- params_male$beta
+    thresholds_male <- combined_chains$threshold_male_results
+    alphas_female <- params_female$alpha
+    betas_female <- params_female$beta
+    thresholds_female <- combined_chains$threshold_female_results
+    asymptotes_male <- combined_chains$asymptote_male_results
+    asymptotes_female <- combined_chains$asymptote_female_results
+  } else {
+    params <- calculate_weibull_parameters(
+      combined_chains$median_results,
+      combined_chains$first_quartile_results,
+      combined_chains$threshold_results
+    )
+    alphas <- params$alpha
+    betas <- params$beta
+    thresholds <- combined_chains$threshold_results
+    asymptotes <- combined_chains$asymptote_results
+  }
+
+  x_values <- seq(0, max_age, length.out = max_age + 1)
+
+  weibull_values <- function(alpha, beta, threshold, asymptote) {
+    if (type == "cdf") {
+      pweibull(x_values - threshold, shape = alpha, scale = beta) * asymptote
+    } else {
+      # ORIGINAL: dweibull(x_values - threshold, shape = alpha, scale = beta) 
+      # Error when threshold is an integer AND alpha < 1 due to Inf value
+      # TEMPORARY FIX
+      raw <- dweibull(x_values - threshold, shape = alpha, scale = beta)
+      ifelse(is.finite(raw), raw, NA_real_) * asymptote
+    }
+  }
+
+  ylab <- if (type == "cdf") "Cumulative Penetrance" else "Probability Density"
+  main <- if (type == "cdf") "Penetrance Curve with Credible Interval - Cumulative Probability" else "Penetrance Curve with Credible Interval - Probability Distribution"
+
+  calculate_ylim <- function(alphas, betas, thresholds, asymptotes) {
+    dist_matrix <- matrix(unlist(mapply(weibull_values, alphas, betas, thresholds, asymptotes, SIMPLIFY = FALSE)),
+                          nrow = length(x_values), byrow = FALSE)
+    ci_lower <- apply(dist_matrix, 1, quantile, probs = (1 - prob) / 2, na.rm = TRUE)
+    ci_upper <- apply(dist_matrix, 1, quantile, probs = 1 - (1 - prob) / 2, na.rm = TRUE)
+    return(c(min(ci_lower, na.rm = TRUE), max(ci_upper, na.rm = TRUE)))
+  }
+
+  plot_curve <- function(alphas, betas, thresholds, asymptotes, color, add = FALSE, ylim = NULL) {
+    dist_matrix <- matrix(unlist(mapply(weibull_values, alphas, betas, thresholds, asymptotes, SIMPLIFY = FALSE)),
+                          nrow = length(x_values), byrow = FALSE)
+    mean_density <- rowMeans(dist_matrix, na.rm = TRUE)
+    ci_lower <- apply(dist_matrix, 1, quantile, probs = (1 - prob) / 2, na.rm = TRUE)
+    ci_upper <- apply(dist_matrix, 1, quantile, probs = 1 - (1 - prob) / 2, na.rm = TRUE)
+
+    if (!add) {
+      plot(x_values, mean_density,
+           type = "l", col = color,
+           ylim = ylim,
+           xlab = "Age", ylab = ylab,
+           main = main
+      )
+    } else {
+      lines(x_values, mean_density, col = color)
+    }
+    lines(x_values, ci_lower, col = color, lty = 2)
+    lines(x_values, ci_upper, col = color, lty = 2)
+    polygon(c(x_values, rev(x_values)), c(ci_lower, rev(ci_upper)), col = adjustcolor(color, alpha.f = 0.1), border = NA)
+  }
+
+  if (sex_specific) {
+    ylim_male <- calculate_ylim(alphas_male, betas_male, thresholds_male, asymptotes_male)
+    ylim_female <- calculate_ylim(alphas_female, betas_female, thresholds_female, asymptotes_female)
+    combined_ylim <- c(min(ylim_male[1], ylim_female[1]), max(ylim_male[2], ylim_female[2]))
+
+    if (sex == "Male") {
+      plot_curve(alphas_male, betas_male, thresholds_male, asymptotes_male, "blue", add = FALSE, ylim = combined_ylim)
+      legend_text <- "Male"
+    } else if (sex == "Female") {
+      plot_curve(alphas_female, betas_female, thresholds_female, asymptotes_female, "red", add = FALSE, ylim = combined_ylim)
+      legend_text <- "Female"
+    } else {
+      plot_curve(alphas_male, betas_male, thresholds_male, asymptotes_male, "blue", add = FALSE, ylim = combined_ylim)
+      plot_curve(alphas_female, betas_female, thresholds_female, asymptotes_female, "red", add = TRUE, ylim = combined_ylim)
+      legend_text <- c("Male", "Female")
+    }
+  } else {
+    plot_curve(alphas, betas, thresholds, asymptotes, "green", add = FALSE)
+    legend_text <- "Overall"
+  }
+
+  legend("topleft",
+         legend = legend_text,
+         col = if (!sex_specific) "green" else if (sex == "Male") "blue" else if (sex == "Female") "red" else c("blue", "red"),
+         lty = c(1, 1),
+         cex = 0.8
+  )
+}
+
 #' Plot Weibull Distribution with Credible Intervals
 #'
-#' This function plots the Weibull distribution with credible intervals for the given MCMC results. 
+#' This function plots the Weibull distribution with credible intervals for the given MCMC results.
 #' It allows for visualization of penetrance curves based on the posterior samples.
 #'
 #' @param combined_chains List of combined MCMC chain results containing posterior samples
@@ -353,126 +469,12 @@ apply_thinning <- function(results, thinning_factor) {
 #' @return A plot showing the Weibull distribution with credible intervals.
 #' @export
 plot_penetrance <- function(combined_chains, prob, max_age, sex = "NA") {
-  if (prob <= 0 || prob >= 1) {
-    stop("prob must be between 0 and 1")
-  }
-  
-  # Check if sex-specific parameters are present
-  sex_specific <- !is.null(combined_chains$median_male_results) && !is.null(combined_chains$median_female_results)
-  
-  if (sex_specific) {
-    # Use sex-specific parameters
-    params_male <- calculate_weibull_parameters(
-      combined_chains$median_male_results,
-      combined_chains$first_quartile_male_results,
-      combined_chains$threshold_male_results
-    )
-    
-    params_female <- calculate_weibull_parameters(
-      combined_chains$median_female_results,
-      combined_chains$first_quartile_female_results,
-      combined_chains$threshold_female_results
-    )
-    
-    alphas_male <- params_male$alpha
-    betas_male <- params_male$beta
-    thresholds_male <- combined_chains$threshold_male_results
-    alphas_female <- params_female$alpha
-    betas_female <- params_female$beta
-    thresholds_female <- combined_chains$threshold_female_results
-    
-    asymptotes_male <- combined_chains$asymptote_male_results
-    asymptotes_female <- combined_chains$asymptote_female_results
-  } else {
-    # Use non-sex-specific parameters
-    params <- calculate_weibull_parameters(
-      combined_chains$median_results,
-      combined_chains$first_quartile_results,
-      combined_chains$threshold_results
-    )
-    
-    alphas <- params$alpha
-    betas <- params$beta
-    thresholds <- combined_chains$threshold_results
-    asymptotes <- combined_chains$asymptote_results
-  }
-  
-  x_values <- seq(0, max_age, length.out = max_age + 1)
-  
-  calculate_ylim <- function(alphas, betas, thresholds, asymptotes, x_values, prob) {
-    distributions <- mapply(function(alpha, beta, threshold, asymptote) {
-      pweibull(x_values - threshold, shape = alpha, scale = beta) * asymptote
-    }, alphas, betas, thresholds, asymptotes, SIMPLIFY = FALSE)
-    
-    distributions_matrix <- matrix(unlist(distributions), nrow = length(x_values), byrow = FALSE)
-    ci_lower <- apply(distributions_matrix, 1, quantile, probs = (1 - prob) / 2, na.rm = TRUE)
-    ci_upper <- apply(distributions_matrix, 1, quantile, probs = 1 - (1 - prob) / 2, na.rm = TRUE)
-    
-    return(c(min(ci_lower, na.rm = TRUE), max(ci_upper, na.rm = TRUE)))
-  }
-  
-  plot_distribution <- function(alphas, betas, thresholds, asymptotes, x_values, prob, color, add = FALSE, ylim = NULL) {
-    distributions <- mapply(function(alpha, beta, threshold, asymptote) {
-      pweibull(x_values - threshold, shape = alpha, scale = beta) * asymptote
-    }, alphas, betas, thresholds, asymptotes, SIMPLIFY = FALSE)
-    
-    distributions_matrix <- matrix(unlist(distributions), nrow = length(x_values), byrow = FALSE)
-    mean_density <- rowMeans(distributions_matrix, na.rm = TRUE)
-    ci_lower <- apply(distributions_matrix, 1, quantile, probs = (1 - prob) / 2, na.rm = TRUE)
-    ci_upper <- apply(distributions_matrix, 1, quantile, probs = 1 - (1 - prob) / 2, na.rm = TRUE)
-    
-    if (!add) {
-      plot(x_values, mean_density,
-           type = "l", col = color,
-           ylim = ylim,
-           xlab = "Age", ylab = "Cumulative Penetrance", 
-           main = "Penetrance Curve with Credible Interval - Cumulative Probability"
-      )
-    } else {
-      lines(x_values, mean_density, col = color)
-    }
-    lines(x_values, ci_lower, col = color, lty = 2)
-    lines(x_values, ci_upper, col = color, lty = 2)
-    polygon(c(x_values, rev(x_values)), c(ci_lower, rev(ci_upper)), col = adjustcolor(color, alpha.f = 0.1), border = NA)
-  }
-  
-  if (sex_specific) {
-    # Calculate y-limits for both male and female distributions without plotting
-    ylim_male <- calculate_ylim(alphas_male, betas_male, thresholds_male, asymptotes_male, x_values, prob)
-    ylim_female <- calculate_ylim(alphas_female, betas_female, thresholds_female, asymptotes_female, x_values, prob)
-    
-    # Combine y-limits
-    combined_ylim <- c(min(ylim_male[1], ylim_female[1]), max(ylim_male[2], ylim_female[2]))
-    
-    # Plot for sex-specific parameters with combined y-limits
-    if (sex == "Male") {
-      plot_distribution(alphas_male, betas_male, thresholds_male, asymptotes_male, x_values, prob, "blue", add = FALSE, ylim = combined_ylim)
-      legend_text <- "Male"
-    } else if (sex == "Female") {
-      plot_distribution(alphas_female, betas_female, thresholds_female, asymptotes_female, x_values, prob, "red", add = FALSE, ylim = combined_ylim)
-      legend_text <- "Female"
-    } else {
-      plot_distribution(alphas_male, betas_male, thresholds_male, asymptotes_male, x_values, prob, "blue", add = FALSE, ylim = combined_ylim)
-      plot_distribution(alphas_female, betas_female, thresholds_female, asymptotes_female, x_values, prob, "red", add = TRUE, ylim = combined_ylim)
-      legend_text <- c("Male", "Female")
-    }
-  } else {
-    # Plot for non-sex-specific parameters
-    plot_distribution(alphas, betas, thresholds, asymptotes, x_values, prob, "green", add = FALSE)
-    legend_text <- "Overall"
-  }
-  
-  legend("topleft",
-         legend = legend_text,
-         col = if (sex_specific && sex == "NA") c("blue", "red") else "green",
-         lty = c(1, 1),
-         cex = 0.8
-  )
+  plot_weibull_curve_internal(combined_chains, prob, max_age, sex, type = "cdf")
 }
 
 #' Plot Weibull Probability Density Function with Credible Intervals
 #'
-#' This function plots the Weibull PDF with credible intervals for the given MCMC results. 
+#' This function plots the Weibull PDF with credible intervals for the given MCMC results.
 #' It allows for visualization of density curves based on the posterior samples.
 #'
 #' @param combined_chains List of combined MCMC chain results containing posterior samples
@@ -484,121 +486,7 @@ plot_penetrance <- function(combined_chains, prob, max_age, sex = "NA") {
 #' @return A plot showing the Weibull PDF with credible intervals.
 #' @export
 plot_pdf <- function(combined_chains, prob, max_age, sex = "NA") {
-  if (prob <= 0 || prob >= 1) {
-    stop("prob must be between 0 and 1")
-  }
-  
-  # Check if sex-specific parameters are present
-  sex_specific <- !is.null(combined_chains$median_male_results) && !is.null(combined_chains$median_female_results)
-  
-  if (sex_specific) {
-    # Use sex-specific parameters
-    params_male <- calculate_weibull_parameters(
-      combined_chains$median_male_results,
-      combined_chains$first_quartile_male_results,
-      combined_chains$threshold_male_results
-    )
-    
-    params_female <- calculate_weibull_parameters(
-      combined_chains$median_female_results,
-      combined_chains$first_quartile_female_results,
-      combined_chains$threshold_female_results
-    )
-    
-    alphas_male <- params_male$alpha
-    betas_male <- params_male$beta
-    thresholds_male <- combined_chains$threshold_male_results
-    alphas_female <- params_female$alpha
-    betas_female <- params_female$beta
-    thresholds_female <- combined_chains$threshold_female_results
-    
-    asymptotes_male <- combined_chains$asymptote_male_results
-    asymptotes_female <- combined_chains$asymptote_female_results
-  } else {
-    # Use non-sex-specific parameters
-    params <- calculate_weibull_parameters(
-      combined_chains$median_results,
-      combined_chains$first_quartile_results,
-      combined_chains$threshold_results
-    )
-    
-    alphas <- params$alpha
-    betas <- params$beta
-    thresholds <- combined_chains$threshold_results
-    asymptotes <- combined_chains$asymptote_results
-  }
-  
-  x_values <- seq(0, max_age, length.out = max_age + 1)
-  
-  calculate_ylim <- function(alphas, betas, thresholds, asymptotes, x_values, prob) {
-    pdf_distributions <- mapply(function(alpha, beta, threshold, asymptote) {
-      dweibull(x_values - threshold, shape = alpha, scale = beta) * asymptote
-    }, alphas, betas, thresholds, asymptotes, SIMPLIFY = FALSE)
-    
-    pdf_matrix <- matrix(unlist(pdf_distributions), nrow = length(x_values), byrow = FALSE)
-    ci_lower <- apply(pdf_matrix, 1, quantile, probs = (1 - prob) / 2, na.rm = TRUE)
-    ci_upper <- apply(pdf_matrix, 1, quantile, probs = 1 - (1 - prob) / 2, na.rm = TRUE)
-    
-    return(c(min(ci_lower, na.rm = TRUE), max(ci_upper, na.rm = TRUE)))
-  }
-  
-  plot_pdf_distribution <- function(alphas, betas, thresholds, asymptotes, x_values, prob, color, add = FALSE, ylim = NULL) {
-    pdf_distributions <- mapply(function(alpha, beta, threshold, asymptote) {
-      dweibull(x_values - threshold, shape = alpha, scale = beta) * asymptote
-    }, alphas, betas, thresholds, asymptotes, SIMPLIFY = FALSE)
-    
-    pdf_matrix <- matrix(unlist(pdf_distributions), nrow = length(x_values), byrow = FALSE)
-    mean_density <- rowMeans(pdf_matrix, na.rm = TRUE)
-    ci_lower <- apply(pdf_matrix, 1, quantile, probs = (1 - prob) / 2, na.rm = TRUE)
-    ci_upper <- apply(pdf_matrix, 1, quantile, probs = 1 - (1 - prob) / 2, na.rm = TRUE)
-    
-    if (!add) {
-      plot(x_values, mean_density,
-           type = "l", col = color,
-           ylim = ylim,
-           xlab = "Age", ylab = "Probability Density", 
-           main = "Penetrance Curve with Credible Interval - Probability Distribution"
-      )
-    } else {
-      lines(x_values, mean_density, col = color)
-    }
-    lines(x_values, ci_lower, col = color, lty = 2)
-    lines(x_values, ci_upper, col = color, lty = 2)
-    polygon(c(x_values, rev(x_values)), c(ci_lower, rev(ci_upper)), col = adjustcolor(color, alpha.f = 0.1), border = NA)
-  }
-  
-  if (sex_specific) {
-    # Calculate y-limits for both male and female distributions without plotting
-    ylim_male <- calculate_ylim(alphas_male, betas_male, thresholds_male, asymptotes_male, x_values, prob)
-    ylim_female <- calculate_ylim(alphas_female, betas_female, thresholds_female, asymptotes_female, x_values, prob)
-    
-    # Combine y-limits
-    combined_ylim <- c(min(ylim_male[1], ylim_female[1]), max(ylim_male[2], ylim_female[2]))
-    
-    # Plot for sex-specific parameters with combined y-limits
-    if (sex == "Male") {
-      plot_pdf_distribution(alphas_male, betas_male, thresholds_male, asymptotes_male, x_values, prob, "blue", add = FALSE, ylim = combined_ylim)
-      legend_text <- "Male"
-    } else if (sex == "Female") {
-      plot_pdf_distribution(alphas_female, betas_female, thresholds_female, asymptotes_female, x_values, prob, "red", add = FALSE, ylim = combined_ylim)
-      legend_text <- "Female"
-    } else {
-      plot_pdf_distribution(alphas_male, betas_male, thresholds_male, asymptotes_male, x_values, prob, "blue", add = FALSE, ylim = combined_ylim)
-      plot_pdf_distribution(alphas_female, betas_female, thresholds_female, asymptotes_female, x_values, prob, "red", add = TRUE, ylim = combined_ylim)
-      legend_text <- c("Male", "Female")
-    }
-  } else {
-    # Plot for non-sex-specific parameters
-    plot_pdf_distribution(alphas, betas, thresholds, asymptotes, x_values, prob, "green", add = FALSE)
-    legend_text <- "Overall"
-  }
-  
-  legend("topleft",
-         legend = legend_text,
-         col = if (sex_specific && sex == "NA") c("blue", "red") else "green",
-         lty = c(1, 1),
-         cex = 0.8
-  )
+  plot_weibull_curve_internal(combined_chains, prob, max_age, sex, type = "pdf")
 }
 
 #' Combine Chains for Non-Sex-Specific Estimation

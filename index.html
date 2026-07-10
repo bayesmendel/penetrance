@@ -11,8 +11,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Methods for Penetrance Estimation in Family-Based Studies">
-<meta name="description" content="Implements statistical methods for estimating disease penetrance in family-based studies. Penetrance refers to the probability of disease manifestation in individuals carrying specific genetic variants. The package provides tools for age-specific penetrance estimation, handling missing data, and accounting for ascertainment bias in family studies. Cite as: Kubista, N., Braun, D. &amp; Parmigiani, G. (2024) &lt;d 10.1093/bioadv/vbaf154&gt;.">
-<meta property="og:description" content="Implements statistical methods for estimating disease penetrance in family-based studies. Penetrance refers to the probability of disease manifestation in individuals carrying specific genetic variants. The package provides tools for age-specific penetrance estimation, handling missing data, and accounting for ascertainment bias in family studies. Cite as: Kubista, N., Braun, D. &amp; Parmigiani, G. (2024) &lt;d 10.1093/bioadv/vbaf154&gt;.">
+<meta name="description" content="Implements statistical methods for estimating disease penetrance in family-based studies. Penetrance refers to the probability of disease manifestation in individuals carrying specific genetic variants. The package provides tools for age-specific penetrance estimation, handling missing data, and accounting for ascertainment bias in family studies. Cite as: Kubista, N., Braun, D. &amp; Parmigiani, G. (2024) &lt;doi:10.1093/bioadv/vbaf154&gt;.">
+<meta property="og:description" content="Implements statistical methods for estimating disease penetrance in family-based studies. Penetrance refers to the probability of disease manifestation in individuals carrying specific genetic variants. The package provides tools for age-specific penetrance estimation, handling missing data, and accounting for ascertainment bias in family studies. Cite as: Kubista, N., Braun, D. &amp; Parmigiani, G. (2024) &lt;doi:10.1093/bioadv/vbaf154&gt;.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -69,7 +69,7 @@
 <h2 id="motivation">Motivation<a class="anchor" aria-label="anchor" href="#motivation"></a>
 </h2>
 <p>Accurate estimation of age-specific penetrance is essential for assessing disease risk in individuals with pathogenic genetic variants (PGVs). Penetrance refers to the probability that an individual carrying a specific genetic variant will develop the associated trait, such as cancer. Estimating this probability is a crucial step in clinical decision-making and personalized risk assessment for hereditary (cancer) syndromes.</p>
-<p>The package leverages Mendelian inheritance models, which are widely used in family-based genetic studies to assess how genetic variants are passed down through generations. These models typically involve a —an individual for whom family history and genetic data are collected. The proband serves as the starting point for mapping out the family’s genetic structure, including relationships and phenotypic traits, such as cancer diagnoses. Family data, including cancer occurrence, ages of diagnosis, and genetic test results, are collected for the proband and their relatives. Using this data, Mendelian models compute the likelihood of certain genetic configurations and disease outcomes based on inheritance patterns.</p>
+<p>The package leverages Mendelian inheritance models, which are widely used in family-based genetic studies to assess how genetic variants are passed down through generations. These models typically involve a proband — an individual for whom family history and genetic data are collected. The proband serves as the starting point for mapping out the family’s genetic structure, including relationships and phenotypic traits, such as cancer diagnoses. Family data, including cancer occurrence, ages of diagnosis, and genetic test results, are collected for the proband and their relatives. Using this data, Mendelian models compute the likelihood of certain genetic configurations and disease outcomes based on inheritance patterns.</p>
 <p>The core methodology in the package relies on a four-parameter Weibull distribution to model age-specific penetrance. Estimation is performed using a Bayesian framework with Markov Chain Monte Carlo (MCMC) methods, allowing the package to provide robust and flexible penetrance estimates. Through this approach, the package models the likelihood of cancer occurrence across family members, even when some genotypic information is missing or incomplete, which is common in real-world studies.</p>
 <p>The package also incorporates prior knowledge into the estimation process, enabling users to specify default, custom, or study-based prior distributions. By employing the Elston-Stewart peeling algorithm, the package efficiently calculates likelihoods across family pedigrees, ensuring scalability and accuracy, even in large datasets.</p>
 <p>By providing user-friendly functions for data input, prior specification, and estimation, the package equips researchers and clinicians with a powerful tool for estimating cancer risk in complex family-based studies. This empowers informed decision-making and preventive strategies in hereditary cancer syndromes, where understanding the genetic basis of risk is critical for patient care.</p>
@@ -111,48 +111,93 @@
 <h3 id="model-specification">Model specification<a class="anchor" aria-label="anchor" href="#model-specification"></a>
 </h3>
 <p>There are a few ways in which a user can specify how the estimation approach is run. Available options are:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co">#' @param pedigree A data frame containing the pedigree data in the required format. It should include the following columns:</span></span>
-<span><span class="co">#'   - `PedigreeID`:  A numeric value representing the unique identifier for each family. There should be no duplicated entries.</span></span>
-<span><span class="co">#'   - `ID`: A numeric value representing the unique identifier for each individual. There should be no duplicated entries.</span></span>
-<span><span class="co">#'   - `Sex`: A numeric value where `0` indicates female and `1` indicates male. Unknown sex needs to be coded as `NA`. </span></span>
-<span><span class="co">#'   - `MotherID`: A numeric value representing the unique identifier for an individual's mother.</span></span>
-<span><span class="co">#'   - `FatherID`: A numeric value representing the unique identifier for an individual's father.</span></span>
-<span><span class="co">#'   - `isProband`: A numeric value where `1` indicates the individual is a proband and `0` otherwise.</span></span>
-<span><span class="co">#'   - `CurAge`: A numeric value indicating the age of censoring (current age if the person is alive or age at death if the person is deceased). Allowed ages range from `1` to `94`. Unknown ages can be left empty or coded as `NA`. </span></span>
-<span><span class="co">#'   - `isAff`: A numeric value indicating the affection status of cancer, with `1` for diagnosed individuals and `0` otherwise. Missing entries are not supported.</span></span>
-<span><span class="co">#'   - `Age`: A numeric value indicating the age of cancer diagnosis, encoded as `NA` if the individual was not diagnosed. Allowed ages range from `1` to `94`. Unknown ages can be left empty or coded as `NA`. </span></span>
-<span><span class="co">#'   - `Geno`: A column for germline testing or tumor marker testing results. Positive results should be coded as `1`, negative results as `0`, and unknown results as `NA` or left empty.</span></span>
-<span><span class="co">#' @param twins A list specifying identical twins or triplets in the family. For example, to indicate that "ora024" and "ora027" are identical twins, and "aey063" and "aey064" are identical twins, use the following format: `twins &lt;- list(c("ora024", "ora027"), c("aey063", "aey064"))`.</span></span>
-<span><span class="co">#' @param n_chains Integer, the number of chains for parallel computation. Default is 1.</span></span>
-<span><span class="co">#' @param n_iter_per_chain Integer, the number of iterations for each chain. Default is 10000.</span></span>
-<span><span class="co">#' @param ncores Integer, the number of cores for parallel computation. Default is 6.</span></span>
-<span><span class="co">#' @param baseline_data Data for the baseline risk estimates (probability of developing cancer), such as population-level risk from a cancer registry. Default data, for exemplary purposes, is for Colorectal cancer from the SEER database.</span></span>
-<span><span class="co">#' @param max_age Integer, the maximum age considered for analysis. Default is 94.</span></span>
-<span><span class="co">#' @param remove_proband Logical, indicating whether to remove probands from the analysis. Default is FALSE.</span></span>
-<span><span class="co">#' @param age_imputation Logical, indicating whether to perform age imputation. Default is FALSE.</span></span>
-<span><span class="co">#' @param median_max Logical, indicating whether to use the baseline median age or `max_age` as an upper bound for the median proposal. Default is TRUE.</span></span>
-<span><span class="co">#' @param BaselineNC Logical, indicating that the non-carrier penetrance is assumed to be the baseline penetrance. Default is TRUE.</span></span>
-<span><span class="co">#' @param var Numeric vector, variances for the proposal distribution in the Metropolis-Hastings algorithm. Default is `c(0.1, 0.1, 2, 2, 5, 5, 5, 5)`.</span></span>
-<span><span class="co">#' @param burn_in Numeric, the fraction of results to discard as burn-in (0 to 1). Default is 0 (no burn-in).</span></span>
-<span><span class="co">#' @param thinning_factor Integer, the factor by which to thin the results. Default is 1 (no thinning).</span></span>
-<span><span class="co">#' @param imp_interval Integer, the interval at which age imputation should be performed when age_imputation = TRUE.</span></span>
-<span><span class="co">#' @param distribution_data Data for generating prior distributions.</span></span>
-<span><span class="co">#' @param allele_freq Numeric, the population allele frequency of the risk variant (p). This will be automatically converted to carrier prevalence (approximately 2p for rare alleles) for internal Bayesian calculations. Default is 0.0001.</span></span>
-<span><span class="co">#' @param sample_size Optional numeric, sample size for distribution generation.</span></span>
-<span><span class="co">#' @param ratio Optional numeric, ratio parameter for distribution generation.</span></span>
-<span><span class="co">#' @param prior_params List, parameters for prior distributions.</span></span>
-<span><span class="co">#' @param risk_proportion Numeric, proportion of risk for distribution generation.</span></span>
-<span><span class="co">#' @param summary_stats Logical, indicating whether to include summary statistics in the output. Default is TRUE.</span></span>
-<span><span class="co">#' @param rejection_rates Logical, indicating whether to include rejection rates in the output. Default is TRUE.</span></span>
-<span><span class="co">#' @param density_plots Logical, indicating whether to include density plots in the output. Default is TRUE.</span></span>
-<span><span class="co">#' @param plot_trace Logical, indicating whether to include trace plots in the output. Default is TRUE.</span></span>
-<span><span class="co">#' @param penetrance_plot Logical, indicating whether to include penetrance plots in the output. Default is TRUE.</span></span>
-<span><span class="co">#' @param penetrance_plot_pdf Logical, indicating whether to include PDF plots in the output. Default is TRUE.</span></span>
-<span><span class="co">#' @param plot_loglikelihood Logical, indicating whether to include log-likelihood plots in the output. Default is TRUE.</span></span>
-<span><span class="co">#' @param plot_acf Logical, indicating whether to include autocorrelation function (ACF) plots for posterior samples. Default is TRUE.</span></span>
-<span><span class="co">#' @param probCI Numeric, probability level for credible intervals in penetrance plots. Must be between 0 and 1. Default is 0.95.</span></span>
-<span><span class="co">#' @param sex_specific Logical, indicating whether to use sex-specific parameters in the analysis. Default is TRUE.</span></span></code></pre></div>
+<ul>
+<li>
+<code>pedigree</code>: A data frame containing the pedigree data in the required format. It should include the following columns:
+<ul>
+<li>
+<code>PedigreeID</code>: A numeric value representing the unique identifier for each family. There should be no duplicated entries.</li>
+<li>
+<code>ID</code>: A numeric value representing the unique identifier for each individual. There should be no duplicated entries.</li>
+<li>
+<code>Sex</code>: A numeric value where <code>0</code> indicates female and <code>1</code> indicates male. Unknown sex needs to be coded as <code>NA</code>.</li>
+<li>
+<code>MotherID</code>: A numeric value representing the unique identifier for an individual’s mother.</li>
+<li>
+<code>FatherID</code>: A numeric value representing the unique identifier for an individual’s father.</li>
+<li>
+<code>isProband</code>: A numeric value where <code>1</code> indicates the individual is a proband and <code>0</code> otherwise.</li>
+<li>
+<code>CurAge</code>: A numeric value indicating the age of censoring (current age if the person is alive or age at death if the person is deceased). Allowed ages range from <code>1</code> to <code>94</code>. Unknown ages can be left empty or coded as <code>NA</code>.</li>
+<li>
+<code>isAff</code>: A numeric value indicating the affection status of cancer, with <code>1</code> for diagnosed individuals and <code>0</code> otherwise. Missing entries are not supported.</li>
+<li>
+<code>Age</code>: A numeric value indicating the age of cancer diagnosis, encoded as <code>NA</code> if the individual was not diagnosed. Allowed ages range from <code>1</code> to <code>94</code>. Unknown ages can be left empty or coded as <code>NA</code>.</li>
+<li>
+<code>Geno</code>: A column for germline testing or tumor marker testing results. Positive results should be coded as <code>1</code>, negative results as <code>0</code>, and unknown results as <code>NA</code> or left empty.</li>
+</ul>
+</li>
+<li>
+<code>twins</code>: A list specifying identical twins or triplets in the family. For example, to indicate that “ora024” and “ora027” are identical twins, and “aey063” and “aey064” are identical twins, use the following format: <code>twins &lt;- list(c("ora024", "ora027"), c("aey063", "aey064"))</code>.</li>
+<li>
+<code>n_chains</code>: Integer, the number of chains for parallel computation. Default is 1.</li>
+<li>
+<code>n_iter_per_chain</code>: Integer, the number of iterations for each chain. Default is 10000.</li>
+<li>
+<code>ncores</code>: Integer, the number of cores for parallel computation. Default is 6.</li>
+<li>
+<code>baseline_data</code>: Data for the baseline risk estimates (probability of developing cancer), such as population-level risk from a cancer registry. Default data, for exemplary purposes, is for Colorectal cancer from the SEER database.</li>
+<li>
+<code>max_age</code>: Integer, the maximum age considered for analysis. Default is 94.</li>
+<li>
+<code>remove_proband</code>: Logical, indicating whether to remove probands from the analysis. Default is FALSE.</li>
+<li>
+<code>age_imputation</code>: Logical, indicating whether to perform age imputation. Default is FALSE.</li>
+<li>
+<code>median_max</code>: Logical, indicating whether to use the baseline median age or <code>max_age</code> as an upper bound for the median proposal. Default is TRUE.</li>
+<li>
+<code>BaselineNC</code>: Logical, indicating that the non-carrier penetrance is assumed to be the baseline penetrance. Default is TRUE.</li>
+<li>
+<code>var</code>: Numeric vector, variances for the proposal distribution in the Metropolis-Hastings algorithm. Default is <code>c(0.1, 0.1, 2, 2, 5, 5, 5, 5)</code>.</li>
+<li>
+<code>burn_in</code>: Numeric, the fraction of results to discard as burn-in (0 to 1). Default is 0 (no burn-in).</li>
+<li>
+<code>thinning_factor</code>: Integer, the factor by which to thin the results. Default is 1 (no thinning).</li>
+<li>
+<code>imp_interval</code>: Integer, the interval at which age imputation should be performed when <code>age_imputation = TRUE</code>.</li>
+<li>
+<code>distribution_data</code>: Data for generating prior distributions.</li>
+<li>
+<code>allele_freq</code>: Numeric, the population allele frequency of the risk variant (p). This will be automatically converted to carrier prevalence (approximately 2p for rare alleles) for internal Bayesian calculations. Default is 0.0001.</li>
+<li>
+<code>sample_size</code>: Optional numeric, sample size for distribution generation.</li>
+<li>
+<code>ratio</code>: Optional numeric, ratio parameter for distribution generation.</li>
+<li>
+<code>prior_params</code>: List, parameters for prior distributions.</li>
+<li>
+<code>risk_proportion</code>: Numeric, proportion of risk for distribution generation.</li>
+<li>
+<code>summary_stats</code>: Logical, indicating whether to include summary statistics in the output. Default is TRUE.</li>
+<li>
+<code>rejection_rates</code>: Logical, indicating whether to include rejection rates in the output. Default is TRUE.</li>
+<li>
+<code>density_plots</code>: Logical, indicating whether to include density plots in the output. Default is TRUE.</li>
+<li>
+<code>plot_trace</code>: Logical, indicating whether to include trace plots in the output. Default is TRUE.</li>
+<li>
+<code>penetrance_plot</code>: Logical, indicating whether to include penetrance plots in the output. Default is TRUE.</li>
+<li>
+<code>penetrance_plot_pdf</code>: Logical, indicating whether to include PDF plots in the output. Default is TRUE.</li>
+<li>
+<code>plot_loglikelihood</code>: Logical, indicating whether to include log-likelihood plots in the output. Default is TRUE.</li>
+<li>
+<code>plot_acf</code>: Logical, indicating whether to include autocorrelation function (ACF) plots for posterior samples. Default is TRUE.</li>
+<li>
+<code>probCI</code>: Numeric, probability level for credible intervals in penetrance plots. Must be between 0 and 1. Default is 0.95.</li>
+<li>
+<code>sex_specific</code>: Logical, indicating whether to use sex-specific parameters in the analysis. Default is TRUE.</li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="prior-specification">Prior Specification<a class="anchor" aria-label="anchor" href="#prior-specification"></a>
@@ -163,12 +208,12 @@
 <h3 id="additional-user-inputs">Additional User Inputs<a class="anchor" aria-label="anchor" href="#additional-user-inputs"></a>
 </h3>
 <ul>
-<li><p>The <code>PenEstim</code> function takes baseline age-specific probabilitie of developing cancer as as input <code>baseline_data</code>. In the default setting with <code>BaselineNC = TRUE</code> this baseline is assumed to reflect the non-carrier penetrance. For rare mutations this is considered a reasonable assumption. The baseline_data must be a data frame with baseline data for females and males.</p></li>
+<li><p>The <code><a href="reference/penetrance.html">penetrance()</a></code> function takes baseline age-specific probabilities of developing cancer as input <code>baseline_data</code>. In the default setting with <code>BaselineNC = TRUE</code> this baseline is assumed to reflect the non-carrier penetrance. For rare mutations this is considered a reasonable assumption. The baseline_data must be a data frame with baseline data for females and males.</p></li>
 <li><p>The specification of allele frequency (<code>allele_freq</code>) is required. The function automatically converts this to carrier prevalence using the approximation <code>carrier_prevalence ≈ 2 * allele_freq</code> for rare autosomal dominant conditions.</p></li>
-<li><p>The PenEsim also includes an option for automatic age imputation <code>AgeImputation</code>. We apply an age imputation as part of the MCMC routine. The imputation of ages is performed based on the individual’s affected status (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mi>f</mi><mi>f</mi></mrow><annotation encoding="application/x-tex">aff</annotation></semantics></math>), sex (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>e</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">sex</annotation></semantics></math>), and their degree of relationship to the proband who is a carrier of the PV. For greater detail on the age imputation approach see documentation.</p></li>
-<li><p>For the likelihood calculation monozygous twins can be specified using the <code>twins</code> arguement.</p></li>
+<li><p>The <code><a href="reference/penetrance.html">penetrance()</a></code> function also includes an option for automatic age imputation <code>AgeImputation</code>. We apply an age imputation as part of the MCMC routine. The imputation of ages is performed based on the individual’s affected status (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mi>f</mi><mi>f</mi></mrow><annotation encoding="application/x-tex">aff</annotation></semantics></math>), sex (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>e</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">sex</annotation></semantics></math>), and their degree of relationship to the proband who is a carrier of the PV. For greater detail on the age imputation approach see documentation.</p></li>
+<li><p>For the likelihood calculation monozygous twins can be specified using the <code>twins</code> argument.</p></li>
 </ul>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">twins</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ora024"</span>, <span class="st">"ora027"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"aey063"</span>, <span class="st">"aey064"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
@@ -219,7 +264,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

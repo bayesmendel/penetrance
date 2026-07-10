@@ -123,6 +123,17 @@ absValue <- function(x) {
   return(abs(x))
 }
 
+# Private helper: constrain the two-state likelihood vector when genotype is
+# observed. lik.i is ordered as c(non-carrier, carrier).
+apply_genotype_constraint <- function(lik.i, geno) {
+  if (is.na(geno)) return(lik.i)
+
+  if (geno == "1/1") lik.i[-1] <- 1e-8
+  if (geno == "1/2") lik.i[-2] <- 1e-8
+
+  lik.i
+}
+
 # Private helper: compute the likelihood contribution for one individual given
 # pre-resolved scalar Weibull parameters and a single baseline risk vector.
 # Called by lik.fn (after sex-based parameter selection) and lik_noSex directly.
@@ -172,10 +183,6 @@ lik_individual <- function(i, data, alpha, beta, delta, gamma, max_age, baseline
     lik.i <- c(nc.surv.prob[age_index], c.surv.prob(age_index))
   }
 
-  # Adjustment for observed genotypes
-  if (data$geno[i] == "1/1") lik.i[-1] <- 1e-8
-  if (data$geno[i] == "1/2") lik.i[-2] <- 1e-8
-
   return(lik.i)
 }
 
@@ -216,7 +223,9 @@ lik.fn <- function(i, data, alpha_male, alpha_female, beta_male, beta_female,
                    baselineRisk, BaselineNC, prev) {
 
   # Check for NA sex
-  if (is.na(data$sex[i])) return(c(1, 1))
+  if (is.na(data$sex[i])) {
+    return(apply_genotype_constraint(c(1, 1), data$geno[i]))
+  }
 
   # Map sex to baselineRisk column name
   sex_index <- ifelse(data$sex[i] == 2, "Female", "Male")
@@ -227,7 +236,8 @@ lik.fn <- function(i, data, alpha_male, alpha_female, beta_male, beta_female,
   gamma <- ifelse(data$sex[i] == 1, gamma_male, gamma_female)
   delta <- ifelse(data$sex[i] == 1, delta_male, delta_female)
 
-  lik_individual(i, data, alpha, beta, delta, gamma, max_age, baselineRisk[, sex_index], BaselineNC, prev)
+  lik.i <- lik_individual(i, data, alpha, beta, delta, gamma, max_age, baselineRisk[, sex_index], BaselineNC, prev)
+  apply_genotype_constraint(lik.i, data$geno[i])
 }
 
 #' Calculate Log Likelihood using clipp Package
@@ -422,5 +432,6 @@ mhLogLikelihood_clipp_noSex <- function(paras, families, twins, max_age, baselin
 #' individuals.
 #'
 lik_noSex <- function(i, data, alpha, beta, delta, gamma, max_age, baselineRisk, BaselineNC, prev) {
-  lik_individual(i, data, alpha, beta, delta, gamma, max_age, baselineRisk, BaselineNC, prev)
+  lik.i <- lik_individual(i, data, alpha, beta, delta, gamma, max_age, baselineRisk, BaselineNC, prev)
+  apply_genotype_constraint(lik.i, data$geno[i])
 }

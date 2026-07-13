@@ -458,7 +458,6 @@ validate_baseline_data <- function(baseline_data, sex_specific = TRUE,
 get_baseline_data <- function(cancer_type) {
   switch(cancer_type,
     "Colorectal"          = colorectal_baseline_data,
-    "Default"             = baseline_data_default,
     "Brain"               = brain_baseline_data,
     "Breast"              = breast_baseline_data,
     "Endometrial"         = endometrial_baseline_data,
@@ -475,7 +474,7 @@ get_baseline_data <- function(cancer_type) {
     "Soft Tissue Sarcoma" = soft_tissue_sarcoma_baseline_data,
     "Thyroid"             = thyroid_baseline_data,
     "Urinary Bladder"     = urinary_bladder_baseline_data,
-    stop(paste0("Error: 'cancer_type' must be one of: 'Colorectal', 'Default', 'Brain', 'Breast', ",
+    stop(paste0("Error: 'cancer_type' must be one of: 'Colorectal', 'Brain', 'Breast', ",
                 "'Endometrial', 'Gastric', 'Hepatobiliary', 'Kidney', 'Leukemia', 'Melanoma', ",
                 "'Osteosarcoma', 'Ovarian', 'Pancreas', 'Prostate', 'Small Intestine', ",
                 "'Soft Tissue Sarcoma', 'Thyroid', 'Urinary Bladder'. Received: '", cancer_type, "'."))

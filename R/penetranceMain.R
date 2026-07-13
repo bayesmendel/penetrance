@@ -41,22 +41,36 @@
 #' Default is 10000.
 #' @param ncores Integer, the number of cores for parallel computation. 
 #' Default is 6.
-#' @param baseline_data Data providing the absolute age-specific baseline risk 
-#' (probability) of developing the cancer in the general population (e.g., from 
-#' SEER database). All probability values must be between 0 and 1. IMPORTANT: This 
-#' should be AGE-SPECIFIC risk, NOT cumulative risk. The function will warn if the 
+#' @param baseline_data Data providing the absolute age-specific baseline risk
+#' (probability) of developing the cancer in the general population (e.g., from
+#' SEER database). All probability values must be between 0 and 1. IMPORTANT: This
+#' should be AGE-SPECIFIC risk, NOT cumulative risk. The function will warn if the
 #' data appears to be cumulative (monotonically increasing or sum > 1).
-#'                      - If `sex_specific = TRUE` (default): A data frame with columns 
-#'                   'Male' and 'Female', where each column contains the age-specific 
-#'                   probabilities for that sex. The number of rows should ideally 
+#'                      - If `sex_specific = TRUE` (default): A data frame with columns
+#'                   'Male' and 'Female', where each column contains the age-specific
+#'                   probabilities for that sex. The number of rows should ideally
 #'                   correspond to`max_age`.
-#'                      - If `sex_specific = FALSE`: A numeric vector or a single-column 
-#'                      data frame containing the age-specific probabilities for 
-#'                      the combined population. The length (or number of rows) 
+#'                      - If `sex_specific = FALSE`: A numeric vector or a single-column
+#'                      data frame containing the age-specific probabilities for
+#'                      the combined population. The length (or number of rows)
 #'                      should ideally correspond to `max_age`.
-#' Default data is provided for Colorectal cancer from SEER (up to age 94). If the 
-#' number of rows/length does not match `max_age`, the data will be truncated or 
-#' extended with the last value.
+#' Default data is provided for Colorectal cancer from SEER (up to age 94). If the
+#' number of rows/length does not match `max_age`, the data will be truncated or
+#' extended with the last value. Only one of `baseline_data` or `cancer_type` needs
+#' to be specified to select which baseline data is used. See `cancer_type` below
+#' for the behavior when both are supplied.
+#' @param cancer_type Optional character string naming a baseline dataset
+#' to use instead of manually supplying `baseline_data`. When set, `baseline_data`
+#' is looked up automatically for the named cancer, so only `cancer_type` needs to
+#' be passed. Valid values are
+#' `"Colorectal"`, `"Brain"`, `"Breast"`, `"Endometrial"`, `"Gastric"`,
+#' `"Hepatobiliary"`, `"Kidney"`, `"Leukemia"`, `"Melanoma"`, `"Osteosarcoma"`,
+#' `"Ovarian"`, `"Pancreas"`, `"Prostate"`, `"Small Intestine"`,
+#' `"Soft Tissue Sarcoma"`, `"Thyroid"`, and `"Urinary Bladder"`; an unrecognized
+#' value will stop with an error listing these options. Default is `NULL` (no cancer type selected, `baseline_data`
+#' is used as passed or as its own default). If both `baseline_data` and `cancer_type`
+#' are supplied, the `baseline_data` value takes precedence and a warning is
+#' issued noting that `cancer_type` was ignored.
 #' @param max_age Integer, the maximum age considered for analysis. Default is 94.
 #' @param remove_proband Logical, indicating whether to remove probands from the 
 #' analysis. Default is FALSE.
@@ -392,8 +406,7 @@ penetrance <- function(pedigree,
   # Resolve baseline_data from cancer_type, if requested
   if (!is.null(cancer_type)) {
     if (!missing(baseline_data)) {
-      warning(paste0("Both 'cancer_type' and 'baseline_data' were supplied. Using the user-supplied ",
-                     "'baseline_data' and ignoring 'cancer_type' ('", cancer_type, "')."))
+      warning(paste0("Both 'cancer_type' and 'baseline_data' were supplied. Using the user-supplied 'baseline_data' and ignoring 'cancer_type' ('", cancer_type, "')."))
     } else {
       baseline_data <- get_baseline_data(cancer_type)
     }
@@ -455,7 +468,7 @@ penetrance <- function(pedigree,
   parallel::clusterExport(cl, c(
     "mhChain", "mhLogLikelihood_clipp", "mhLogLikelihood_clipp_noSex", "imputeUnaffectedAges",
     "calculate_weibull_parameters", "validate_weibull_parameters", "prior_params",
-    "transformDF", "lik.fn", "lik_noSex", "mvrnorm", "var", "calculateEmpiricalDensity", "baseline_data",
+    "transformDF", "lik.fn", "lik_noSex", "lik_individual", "mvrnorm", "var", "calculateEmpiricalDensity", "baseline_data",
     "seeds", "n_iter_per_chain", "burn_in", "imputeAges", "imputeAgesInit",
     "drawBaseline", "calculateNCPen", "drawEmpirical", "imp_interval",
     "data", "twins", "prop", "carrier_prev", "max_age", "BaselineNC", "median_max", "ncores",

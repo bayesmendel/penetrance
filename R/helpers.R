@@ -451,6 +451,33 @@ validate_baseline_data <- function(baseline_data, sex_specific = TRUE,
     # Validate the vector
     validate_probability_vector(vec, "values")
   }
-  
+
   return(TRUE)
+}
+
+get_baseline_data <- function(cancer_type) {
+  switch(cancer_type,
+    "Colorectal"          = colorectal_baseline_data,
+    "Default"             = baseline_data_default,
+    "Brain"               = brain_baseline_data,
+    "Breast"              = breast_baseline_data,
+    "Endometrial"         = endometrial_baseline_data,
+    "Gastric"             = gastric_baseline_data,
+    "Hepatobiliary"       = hepatobiliary_baseline_data,
+    "Kidney"              = kidney_baseline_data,
+    "Leukemia"            = leukemia_baseline_data,
+    "Melanoma"            = melanoma_baseline_data,
+    "Osteosarcoma"        = osteosarcoma_baseline_data,
+    "Ovarian"             = ovarian_baseline_data,
+    "Pancreas"            = pancreas_baseline_data,
+    "Prostate"            = prostate_baseline_data,
+    "Small Intestine"     = small_intestine_baseline_data,
+    "Soft Tissue Sarcoma" = soft_tissue_sarcoma_baseline_data,
+    "Thyroid"             = thyroid_baseline_data,
+    "Urinary Bladder"     = urinary_bladder_baseline_data,
+    stop(paste0("Error: 'cancer_type' must be one of: 'Colorectal', 'Default', 'Brain', 'Breast', ",
+                "'Endometrial', 'Gastric', 'Hepatobiliary', 'Kidney', 'Leukemia', 'Melanoma', ",
+                "'Osteosarcoma', 'Ovarian', 'Pancreas', 'Prostate', 'Small Intestine', ",
+                "'Soft Tissue Sarcoma', 'Thyroid', 'Urinary Bladder'. Received: '", cancer_type, "'."))
+  )
 }

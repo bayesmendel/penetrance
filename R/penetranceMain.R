@@ -173,6 +173,7 @@ penetrance <- function(pedigree,
                        ncores = 6,
                        max_age = 94,
                        baseline_data = baseline_data_default,
+                       cancer_type = NULL,
                        remove_proband = FALSE,
                        age_imputation = FALSE,
                        median_max = TRUE,
@@ -386,6 +387,16 @@ penetrance <- function(pedigree,
     
     # Assign potentially modified ped_df back to the list to reflect numeric coercion
     pedigree[[i]] <- ped_df 
+  }
+
+  # Resolve baseline_data from cancer_type, if requested
+  if (!is.null(cancer_type)) {
+    if (!missing(baseline_data)) {
+      warning(paste0("Both 'cancer_type' and 'baseline_data' were supplied. Using the user-supplied ",
+                     "'baseline_data' and ignoring 'cancer_type' ('", cancer_type, "')."))
+    } else {
+      baseline_data <- get_baseline_data(cancer_type)
+    }
   }
 
   # Validate baseline_data structure and values using validation function

@@ -45,6 +45,8 @@ distribution_data_default <- data.frame(
 #' @param sample_size Numeric, the total sample size used for risk proportion calculations.
 #' @param ratio List, with components \code{noSex}, \code{male}, and \code{female}, each the odds ratio (OR) or relative risk (RR) used in asymptote parameter calculations for the corresponding baseline. Only the component(s) matching the inferred sex-specific mode need be supplied.
 #' @param ratio_is_or Logical, indicating whether the ratios supplied are odds ratios (OR) (TRUE) or relative risks (FALSE).
+#' @param ratio_ci_lower List, with components \code{noSex}, \code{male}, and \code{female}, the lower bound of each reported ratio's confidence interval (on the same OR/RR scale as \code{ratio}, per \code{ratio_is_or}). Required alongside the matching \code{ratio} component(s).
+#' @param ratio_ci_upper List, with components \code{noSex}, \code{male}, and \code{female}, the upper bound of each reported ratio's confidence interval (on the same OR/RR scale as \code{ratio}, per \code{ratio_is_or}). Required alongside the matching \code{ratio} component(s).
 #' @param prior_params List, containing prior parameters for the beta distributions. If NULL, default parameters are used.
 #' @param risk_proportion Data frame, with default proportions of people at risk.
 #' @param baseline_data Data frame with the baseline risk data.
@@ -63,7 +65,10 @@ distribution_data_default <- data.frame(
 #' @export
 makePriors <- function(data,
                       sample_size,
-                      ratio = list(noSex = NULL, male = NULL, female = NULL), ratio_is_or, prior_params, baseline_data,
+                      ratio = list(noSex = NULL, male = NULL, female = NULL), ratio_is_or,
+                      ratio_ci_lower = list(noSex = NULL, male = NULL, female = NULL),
+                      ratio_ci_upper = list(noSex = NULL, male = NULL, female = NULL),
+                      prior_params, baseline_data,
                       lifetime_risk = NULL, max_age = 94, prior_predictive_check = FALSE, n_draws = 50, sex_specific = FALSE) {
 
   # No data or ratio supplied: fall back to the default priors as-is.
@@ -79,19 +84,68 @@ makePriors <- function(data,
     return(or / (1 - baseline_risk + (or * baseline_risk)))
   }
 
+  # Standard error of ratio on the raw scale, valid when the reported CI is a symmetric, raw-scale Wald interval.
+  compute_se_raw <- function(ratio_ci_lower, ratio_ci_upper) {
+    return((ratio_ci_upper - ratio_ci_lower) / (2 * 1.96))
+  }
+
+  # Standard error of log(ratio), valid when the reported CI is built on the log scale and are asymmetric on the raw scale.
+  compute_se_log <- function(ratio_ci_lower, ratio_ci_upper) {
+    return((log(ratio_ci_upper) - log(ratio_ci_lower)) / (2 * 1.96))
+  }
+
+  # Variance of ratio: a CI symmetric around ratio implies a raw-scale Wald interval (Var = SE_raw^2); an asymmetric CI implies a log-scale interval, propagated to the raw scale via the delta method (Var = ratio^2 * SE_log^2).
+  compute_ratio_variance <- function(ratio, ratio_ci_lower, ratio_ci_upper) {
+    is_symmetric <- isTRUE(all.equal(ratio - ratio_ci_lower, ratio_ci_upper - ratio))
+
+    if (is_symmetric) {
+      se_raw <- compute_se_raw(ratio_ci_lower, ratio_ci_upper)
+      return(se_raw^2)
+    }
+
+    se_log <- compute_se_log(ratio_ci_lower, ratio_ci_upper)
+    return(ratio^2 * se_log^2)
+  }
+
+  # Propagates ratio's variance to the asymptote scale, treating baseline as a fixed constant: Var(baseline * ratio) = baseline^2 * Var(ratio).
+  compute_asymptote_variance <- function(baseline, ratio_variance) {
+    return(baseline^2 * ratio_variance)
+  }
+
+  # Matches a Beta(g1, g2) to a target mean and variance, solving
+  # Var = mean(1-mean)/(concentration+1) for concentration.
+  compute_concentration <- function(mean, variance) {
+    return((mean * (1 - mean)) / variance - 1)
+  }
+
+  # Falls back to the shared (bare) prior when a sex/mode-specific one hasn't been set
+  get_param <- function(param_name, suffix) {
+    suffixed_param <- prior_params[[paste0(param_name, suffix)]]
+    if (!is.null(suffixed_param)) return(suffixed_param)
+    prior_params[[param_name]]
+  }
+
   # Ratio pathway
-  # TODO: COMPUTE CONCENTRATION WHERE CONCENTRATION = f(CI_WIDTH)
   if (!all(sapply(ratio, is.null))) {
     # Compute beta parameters for each prior
     if (!is.null(ratio$male)) {
       SEER_lifetime_male <- sum(baseline_data$Male)
-      if (ratio_is_or == TRUE) ratio$male <- convert_or_to_rr(ratio$male, SEER_lifetime_male)
+      if (ratio_is_or == TRUE) {
+        ratio$male <- convert_or_to_rr(ratio$male, SEER_lifetime_male)
+        ratio_ci_lower$male <- convert_or_to_rr(ratio_ci_lower$male, SEER_lifetime_male)
+        ratio_ci_upper$male <- convert_or_to_rr(ratio_ci_upper$male, SEER_lifetime_male)
+      }
 
       if (SEER_lifetime_male * ratio$male >= 1) {
         stop("Error: 'SEER_lifetime_male * ratio$male' (the implied male carrier lifetime risk) must be less than 1.")
       }
 
-      g1_male <- SEER_lifetime_male * ratio$male * concentration_male
+      mean_male <- SEER_lifetime_male * ratio$male
+      ratio_variance_male <- compute_ratio_variance(ratio$male, ratio_ci_lower$male, ratio_ci_upper$male)
+      asymptote_variance_male <- compute_asymptote_variance(SEER_lifetime_male, ratio_variance_male)
+      concentration_male <- compute_concentration(mean_male, asymptote_variance_male)
+
+      g1_male <- mean_male * concentration_male
       g2_male <- concentration_male - g1_male
 
       prior_params$asymptote_male <- list(g1 = g1_male, g2 = g2_male)
@@ -99,13 +153,22 @@ makePriors <- function(data,
 
     if (!is.null(ratio$female)) {
       SEER_lifetime_female <- sum(baseline_data$Female)
-      if (ratio_is_or == TRUE) ratio$female <- convert_or_to_rr(ratio$female, SEER_lifetime_female)
+      if (ratio_is_or == TRUE) {
+        ratio$female <- convert_or_to_rr(ratio$female, SEER_lifetime_female)
+        ratio_ci_lower$female <- convert_or_to_rr(ratio_ci_lower$female, SEER_lifetime_female)
+        ratio_ci_upper$female <- convert_or_to_rr(ratio_ci_upper$female, SEER_lifetime_female)
+      }
 
       if (SEER_lifetime_female * ratio$female >= 1) {
         stop("Error: 'SEER_lifetime_female * ratio$female' (the implied female carrier lifetime risk) must be less than 1.")
       }
 
-      g1_female <- SEER_lifetime_female * ratio$female * concentration_female
+      mean_female <- SEER_lifetime_female * ratio$female
+      ratio_variance_female <- compute_ratio_variance(ratio$female, ratio_ci_lower$female, ratio_ci_upper$female)
+      asymptote_variance_female <- compute_asymptote_variance(SEER_lifetime_female, ratio_variance_female)
+      concentration_female <- compute_concentration(mean_female, asymptote_variance_female)
+
+      g1_female <- mean_female * concentration_female
       g2_female <- concentration_female - g1_female
 
       prior_params$asymptote_female <- list(g1 = g1_female, g2 = g2_female)
@@ -113,13 +176,22 @@ makePriors <- function(data,
 
     if (!is.null(ratio$noSex)) {
       SEER_lifetime_noSex <- sum(baseline_data)
-      if (ratio_is_or == TRUE) ratio$noSex <- convert_or_to_rr(ratio$noSex, SEER_lifetime_noSex)
+      if (ratio_is_or == TRUE) {
+        ratio$noSex <- convert_or_to_rr(ratio$noSex, SEER_lifetime_noSex)
+        ratio_ci_lower$noSex <- convert_or_to_rr(ratio_ci_lower$noSex, SEER_lifetime_noSex)
+        ratio_ci_upper$noSex <- convert_or_to_rr(ratio_ci_upper$noSex, SEER_lifetime_noSex)
+      }
 
       if (SEER_lifetime_noSex * ratio$noSex >= 1) {
         stop("Error: 'SEER_lifetime_noSex * ratio$noSex' (the implied carrier lifetime risk) must be less than 1.")
       }
 
-      g1_noSex <- SEER_lifetime_noSex * ratio$noSex * concentration_noSex
+      mean_noSex <- SEER_lifetime_noSex * ratio$noSex
+      ratio_variance_noSex <- compute_ratio_variance(ratio$noSex, ratio_ci_lower$noSex, ratio_ci_upper$noSex)
+      asymptote_variance_noSex <- compute_asymptote_variance(SEER_lifetime_noSex, ratio_variance_noSex)
+      concentration_noSex <- compute_concentration(mean_noSex, asymptote_variance_noSex)
+
+      g1_noSex <- mean_noSex * concentration_noSex
       g2_noSex <- concentration_noSex - g1_noSex
 
       prior_params$asymptote_noSex <- list(g1 = g1_noSex, g2 = g2_noSex)
@@ -137,13 +209,6 @@ makePriors <- function(data,
 
     weibull_values <- function(alpha, beta, threshold, asymptote) {
       pweibull(x_values - threshold, shape = alpha, scale = beta) * asymptote
-    }
-
-    # Falls back to the shared (bare) prior when a sex/mode-specific one hasn't been set
-    get_param <- function(param_name, suffix) {
-      suffixed_param <- prior_params[[paste0(param_name, suffix)]]
-      if (!is.null(suffixed_param)) return(suffixed_param)
-      prior_params[[param_name]]
     }
 
     # Step 1: draw n_draws samples from each of the four priors
@@ -202,4 +267,5 @@ makePriors <- function(data,
     }
   }
 
+  return(prior_params)
 }

@@ -444,7 +444,7 @@ penetrance <- function(pedigree,
   parallel::clusterExport(cl, c(
     "mhChain", "mhLogLikelihood_clipp", "mhLogLikelihood_clipp_noSex", "imputeUnaffectedAges",
     "calculate_weibull_parameters", "validate_weibull_parameters", "prior_params",
-    "transformDF", "lik.fn", "lik_noSex", "mvrnorm", "var", "calculateEmpiricalDensity", "baseline_data",
+    "transformDF", "lik.fn", "lik_noSex", "lik_individual", "apply_genotype_constraint", "mvrnorm", "var", "calculateEmpiricalDensity", "baseline_data",
     "seeds", "n_iter_per_chain", "burn_in", "imputeAges", "imputeAgesInit",
     "drawBaseline", "calculateNCPen", "drawEmpirical", "imp_interval",
     "data", "twins", "prop", "carrier_prev", "max_age", "BaselineNC", "median_max", "ncores",

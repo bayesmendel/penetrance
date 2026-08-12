@@ -94,7 +94,7 @@
 <div class="section level3">
 <h3 id="pedigree">Pedigree<a class="anchor" aria-label="anchor" href="#pedigree"></a>
 </h3>
-<p>The user must specify the <code>pedigree</code> argument as a data frame that contains the family data (see <code>test_family_1</code>). The family data must be in the correct format with the following columns:</p>
+<p>The user must specify the <code>pedigree</code> argument as a list of data frames, where each data frame contains one family’s data (see <code>test_family_1</code>). Each data frame must have the following columns:</p>
 <ul>
 <li><p><code>ID</code>: A numeric value representing the unique identifier for each individual. There should be no duplicated entries.</p></li>
 <li><p><code>Sex</code>: A numeric value where <code>0</code> indicates female and <code>1</code> indicates male. Unknown sex needs to be coded as <code>NA</code>.</p></li>
@@ -102,7 +102,7 @@
 <li><p><code>FatherID</code>: A numeric value representing the unique identifier for an individual’s father.</p></li>
 <li><p><code>isProband</code>: A numeric value where <code>1</code> indicates the individual is a proband and <code>0</code> otherwise.</p></li>
 <li><p><code>CurAge</code>: A numeric value indicating the age of censoring (current age if the person is alive or age at death if the person is deceased). Allowed ages range from <code>1</code> to <code>94</code>. Unknown ages can be left empty or coded as <code>NA</code>.</p></li>
-<li><p><code>isAff</code>: A numeric value indicating the affection status of cancer, with <code>1</code> for diagnosed individuals and <code>0</code> otherwise. Missing entries are not supported.</p></li>
+<li><p><code>isAff</code>: A numeric value indicating the affection status of cancer, with <code>1</code> for diagnosed individuals and <code>0</code> otherwise.</p></li>
 <li><p><code>Age</code>: A numeric value indicating the age of cancer diagnosis, encoded as <code>NA</code> if the individual was not diagnosed. Allowed ages range from <code>1</code> to <code>94</code>. Unknown ages can be left empty or coded as <code>NA</code>.</p></li>
 <li><p><code>Geno</code>: A column for germline testing or tumor marker testing results. Positive results should be coded as <code>1</code>, negative results as <code>0</code>, and unknown results as <code>NA</code> or left empty.</p></li>
 </ul>
@@ -113,7 +113,7 @@
 <p>There are a few ways in which a user can specify how the estimation approach is run. Available options are:</p>
 <ul>
 <li>
-<code>pedigree</code>: A data frame containing the pedigree data in the required format. It should include the following columns:
+<code>pedigree</code>: A list of data frames, where each data frame contains one pedigree in the required format. Each data frame should include the following columns:
 <ul>
 <li>
 <code>PedigreeID</code>: A numeric value representing the unique identifier for each family. There should be no duplicated entries.</li>
@@ -210,7 +210,7 @@
 <ul>
 <li><p>The <code><a href="reference/penetrance.html">penetrance()</a></code> function takes baseline age-specific probabilities of developing cancer as input <code>baseline_data</code>. In the default setting with <code>BaselineNC = TRUE</code> this baseline is assumed to reflect the non-carrier penetrance. For rare mutations this is considered a reasonable assumption. The baseline_data must be a data frame with baseline data for females and males.</p></li>
 <li><p>The specification of allele frequency (<code>allele_freq</code>) is required. The function automatically converts this to carrier prevalence using the approximation <code>carrier_prevalence ≈ 2 * allele_freq</code> for rare autosomal dominant conditions.</p></li>
-<li><p>The <code><a href="reference/penetrance.html">penetrance()</a></code> function also includes an option for automatic age imputation <code>AgeImputation</code>. We apply an age imputation as part of the MCMC routine. The imputation of ages is performed based on the individual’s affected status (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mi>f</mi><mi>f</mi></mrow><annotation encoding="application/x-tex">aff</annotation></semantics></math>), sex (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>e</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">sex</annotation></semantics></math>), and their degree of relationship to the proband who is a carrier of the PV. For greater detail on the age imputation approach see documentation.</p></li>
+<li><p>The <code><a href="reference/penetrance.html">penetrance()</a></code> function also includes an option for automatic age imputation <code>age_imputation</code>. We apply an age imputation as part of the MCMC routine. The imputation of ages is performed based on the individual’s affected status (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mi>f</mi><mi>f</mi></mrow><annotation encoding="application/x-tex">aff</annotation></semantics></math>), sex (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>e</mi><mi>x</mi></mrow><annotation encoding="application/x-tex">sex</annotation></semantics></math>), and their degree of relationship to the proband who is a carrier of the PV. For greater detail on the age imputation approach see documentation.</p></li>
 <li><p>For the likelihood calculation monozygous twins can be specified using the <code>twins</code> argument.</p></li>
 </ul>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">

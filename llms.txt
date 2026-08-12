@@ -88,9 +88,9 @@ library(penetrance)
 
 ### Pedigree
 
-The user must specify the `pedigree` argument as a data frame that
-contains the family data (see `test_family_1`). The family data must be
-in the correct format with the following columns:
+The user must specify the `pedigree` argument as a list of data frames,
+where each data frame contains one family’s data (see `test_family_1`).
+Each data frame must have the following columns:
 
 - `ID`: A numeric value representing the unique identifier for each
   individual. There should be no duplicated entries.
@@ -113,8 +113,7 @@ in the correct format with the following columns:
   coded as `NA`.
 
 - `isAff`: A numeric value indicating the affection status of cancer,
-  with `1` for diagnosed individuals and `0` otherwise. Missing entries
-  are not supported.
+  with `1` for diagnosed individuals and `0` otherwise.
 
 - `Age`: A numeric value indicating the age of cancer diagnosis, encoded
   as `NA` if the individual was not diagnosed. Allowed ages range from
@@ -129,8 +128,9 @@ in the correct format with the following columns:
 There are a few ways in which a user can specify how the estimation
 approach is run. Available options are:
 
-- `pedigree`: A data frame containing the pedigree data in the required
-  format. It should include the following columns:
+- `pedigree`: A list of data frames, where each data frame contains one
+  pedigree in the required format. Each data frame should include the
+  following columns:
   - `PedigreeID`: A numeric value representing the unique identifier for
     each family. There should be no duplicated entries.
   - `ID`: A numeric value representing the unique identifier for each
@@ -253,7 +253,7 @@ specification are available:
 - The
   [`penetrance()`](https://nicokubi.github.io/penetrance/reference/penetrance.md)
   function also includes an option for automatic age imputation
-  `AgeImputation`. We apply an age imputation as part of the MCMC
+  `age_imputation`. We apply an age imputation as part of the MCMC
   routine. The imputation of ages is performed based on the individual’s
   affected status ($`aff`$), sex ($`sex`$), and their degree of
   relationship to the proband who is a carrier of the PV. For greater

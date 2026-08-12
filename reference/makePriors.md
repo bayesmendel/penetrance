@@ -23,8 +23,9 @@ makePriors(
 
 - data:
 
-  A data frame containing age and risk data. If NULL or contains NA
-  values, default parameters are used.
+  A data frame containing age and risk data. If NULL or entirely NA,
+  default parameters are used. If provided, all entries in the age
+  column must be numeric and non-NA.
 
 - sample_size:
 

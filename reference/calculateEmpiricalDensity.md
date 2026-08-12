@@ -51,3 +51,21 @@ calculateEmpiricalDensity(
 
 A list of density objects for different subgroups (tested/untested,
 male/female)
+
+## Examples
+
+``` r
+# Create sample data
+data <- data.frame(
+  sex = c(1, 1, 2, 2),
+  aff = c(0, 0, 0, 0),
+  age = c(45, 50, 35, 40),
+  geno = c("1/2", NA, "1/2", NA)
+)
+
+# Calculate density with sex-specific parameters
+density_sex <- calculateEmpiricalDensity(data, sex_specific = TRUE)
+
+# Calculate density without sex-specific parameters
+density_nosex <- calculateEmpiricalDensity(data, sex_specific = FALSE)
+```

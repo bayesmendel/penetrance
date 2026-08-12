@@ -298,6 +298,8 @@ Authors:
 
 - Danielle Braun
 
+- Zaid Al-Ississ
+
 - Alice Zhang
 
 ## Examples

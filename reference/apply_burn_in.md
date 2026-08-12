@@ -16,8 +16,8 @@ apply_burn_in(results, burn_in)
 
 - burn_in:
 
-  The fraction roportion of results to discard as burn-in (0 to 1). The
-  default is no burn-in, burn_in=0.
+  The fraction or proportion of results to discard as burn-in (0 to 1).
+  The default is no burn-in, burn_in=0.
 
 ## Value
 

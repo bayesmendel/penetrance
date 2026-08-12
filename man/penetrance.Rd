@@ -269,6 +269,7 @@ Authors:
   \item BayesMendel Lab
   \item Giovanni Parmigiani
   \item Danielle Braun
+  \item Zaid Al-Ississ
   \item Alice Zhang
 }
 

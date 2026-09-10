@@ -19,7 +19,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/bayesmendel/penetrance/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/bayesmendel/penetrance/blob/v0.1.4/DESCRIPTION)
 
 Kubista N, Lab B, Parmigiani G, Braun D, Al-Ississ Z, Zhang A (2026).
 *penetrance: Methods for Penetrance Estimation in Family-Based Studies*.

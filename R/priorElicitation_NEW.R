@@ -41,24 +41,30 @@ distribution_data_default <- data.frame(
 #' It is designed to aid in the statistical analysis of risk proportions in populations, particularly in the context of cancer research.
 #' The distributions are calculated for various statistical metrics such as asymptote, threshold, median, and first quartile.
 #'
-#' @param data A data frame containing age and risk data. If NULL or entirely NA, default parameters are used. If provided, all entries in the age column must be numeric and non-NA.
-#' @param sample_size Numeric, the total sample size used for risk proportion calculations.
-#' @param ratio List, with components \code{noSex}, \code{male}, and \code{female}, each the odds ratio (OR) or relative risk (RR) used in asymptote parameter calculations for the corresponding baseline. Only the component(s) matching the inferred sex-specific mode need be supplied.
+#' @param data A data frame with row names min, first_quartile, median, and max, and columns age and at_risk (a count of people at risk, not a proportion). If NULL or entirely NA, default parameters are used. If provided, all entries in the age and at_risk columns must be numeric and non-NA, ages must strictly increase from min to max, and no at_risk count may exceed sample_size.
+#' @param sample_size Numeric, positive, the total number of people in the source study. Required when data is provided, since the asymptote is estimated from the fraction of sample_size no longer at risk by the median age.
+#' @param ratio List, with components noSex, male, and female, each the odds ratio (OR) or relative risk (RR) used in asymptote parameter calculations for the corresponding baseline. Only the component(s) matching the inferred sex-specific mode need be supplied.
 #' @param ratio_is_or Logical, indicating whether the ratios supplied are odds ratios (OR) (TRUE) or relative risks (FALSE).
-#' @param ratio_ci_lower List, with components \code{noSex}, \code{male}, and \code{female}, the lower bound of each reported ratio's confidence interval (on the same OR/RR scale as \code{ratio}, per \code{ratio_is_or}). Required alongside the matching \code{ratio} component(s).
-#' @param ratio_ci_upper List, with components \code{noSex}, \code{male}, and \code{female}, the upper bound of each reported ratio's confidence interval (on the same OR/RR scale as \code{ratio}, per \code{ratio_is_or}). Required alongside the matching \code{ratio} component(s).
+#' @param ratio_ci_lower List, with components noSex, male, and female, the lower bound of each reported ratio's confidence interval (on the same OR/RR scale as ratio, per ratio_is_or). Required alongside the matching ratio component(s).
+#' @param ratio_ci_upper List, with components noSex, male, and female, the upper bound of each reported ratio's confidence interval (on the same OR/RR scale as ratio, per ratio_is_or). Required alongside the matching ratio component(s).
 #' @param prior_params List, containing prior parameters for the beta distributions. If NULL, default parameters are used.
-#' @param risk_proportion Data frame, with default proportions of people at risk.
 #' @param baseline_data Data frame with the baseline risk data.
-#' @param max_age Numeric, the maximum age to plot the sampled curves over when \code{prior_predictive_check} is \code{TRUE}. Default is 94, matching \code{penetrance()}'s default \code{max_age}.
-#' @param prior_predictive_check Logical, indicating whether to draw \code{n_draws} samples from \code{prior_params} and plot the resulting penetrance curves overlaid, as a sanity check on the joint prior specification. Default is FALSE.
-#' @param n_draws Numeric, the number of curves to draw and overlay when \code{prior_predictive_check} is \code{TRUE}. Default is 50.
-#' @param sex_specific Logical, indicating whether the prior predictive check should draw and overlay male/female curves separately (\code{TRUE}) or a single non-sex-specific set of curves (\code{FALSE}). Default is FALSE.
+#' @param lifetime_risk Numeric between 0 and 1, an externally reported lifetime risk used as the asymptote prior's mean when asymptote_method = "lifetime_risk".
+#' @param lifetime_risk_cv Numeric, positive. The assumed coefficient of variation (relative SD) of lifetime_risk, used to derive the asymptote prior's concentration when asymptote_method = "lifetime_risk". Default is 0.15.
+#' @param asymptote_method Character, one of "default", "lifetime_risk", or "estimate". Selects how the asymptote prior is built for the time interval risk data pathway. "default" uses a flat Beta(1,1). "lifetime_risk" uses the user-supplied lifetime_risk as the Beta mean. "estimate" derives the asymptote from the time interval (KM-curve-style) risk data itself -- not yet implemented. NULL (default) leaves prior_params$asymptote untouched.
+#' @param max_age Numeric, the maximum age to plot the sampled curves over when prior_predictive_check is TRUE. Default is 94, matching penetrance()'s default max_age.
+#' @param prior_predictive_check Logical, indicating whether to draw n_draws samples from prior_params and plot the resulting penetrance curves overlaid, as a sanity check on the joint prior specification. Default is FALSE.
+#' @param n_draws Numeric, the number of curves to draw and overlay when prior_predictive_check is TRUE. Default is 50.
+#' @param sex_specific Logical, indicating whether the prior predictive check should draw and overlay male/female curves separately (TRUE) or a single non-sex-specific set of curves (FALSE). Default is FALSE.
 #'
 #' @details
-#' TODO: Update accordingly
+#' If data is provided (the quartile pathway), the median and first quartile priors are Beta distributions whose means are the reported ages rescaled onto [0, 1] and whose concentrations are the at_risk counts at those ages. The threshold prior is uniform from 10 years below to 10 years above the reported minimum age, with the lower bound floored at 0.
 #'
-#' @return A list of functions representing the prior distributions for asymptote, threshold, median, and first quartile.
+#' The asymptote prior is a Beta distribution with mean 2 * (1 - at_risk_median / sample_size) and concentration at_risk_median. This follows from the reported median age being the age by which half of the eventually affected carriers are diagnosed, so the fraction diagnosed by that age is half the asymptote. If this estimate falls outside (0, 1), for example because follow-up in the source study was incomplete or heavily censored, an error is thrown.
+#'
+#' If asymptote_method or ratio is also supplied, the asymptote prior from those pathways overrides the one derived from data.
+#'
+#' @return A list of the prior parameters for asymptote, threshold, median, and first_quartile, to be passed as prior_params to penetrance().
 #'
 #' @seealso \code{\link{qbeta}}, \code{\link{runif}}
 #' 
@@ -69,10 +75,12 @@ makePriors <- function(data,
                       ratio_ci_lower = list(noSex = NULL, male = NULL, female = NULL),
                       ratio_ci_upper = list(noSex = NULL, male = NULL, female = NULL),
                       prior_params, baseline_data,
-                      lifetime_risk = NULL, max_age = 94, prior_predictive_check = FALSE, n_draws = 50, sex_specific = FALSE) {
+                      asymptote_method = NULL,
+                      lifetime_risk = NULL, lifetime_risk_cv = 0.15,
+                      max_age = 94, prior_predictive_check = FALSE, n_draws = 50, sex_specific = FALSE) {
 
   # No data or ratio supplied: fall back to the default priors as-is.
-  if ((is.null(data) || all(is.na(data))) && all(sapply(ratio, is.null))) {
+  if ((is.null(data) || all(is.na(data))) && all(sapply(ratio, is.null)) && is.null(asymptote_method)) {
     return(prior_params_default)
   }
 
@@ -118,11 +126,140 @@ makePriors <- function(data,
     return((mean * (1 - mean)) / variance - 1)
   }
 
+  normalize_median <- function(stat, min_age, max_age) {
+    return((stat - min_age) / (max_age - min_age))
+  }
+
+  normalize_first_quartile <- function(stat, min_age, median_age) {
+    return((stat - min_age) / (median_age - min_age))
+  }
+
+  compute_parameters_median <- function(stat, at_risk, min_age, max_age) {
+    median_norm <- normalize_median(stat, min_age, max_age)
+    alpha <- median_norm * at_risk
+    beta <- at_risk - alpha
+    return(list(m1 = alpha, m2 = beta))
+  }
+
+  compute_parameters_quartile <- function(stat, at_risk, min_age, median_age) {
+    quartile_norm <- normalize_first_quartile(stat, min_age, median_age)
+    alpha <- quartile_norm * at_risk
+    beta <- at_risk - alpha
+    return(list(q1 = alpha, q2 = beta))
+  }
+
+  # Median ages are quantiles among eventually-affected carriers only, so G(median_age) = 0.5
+  # and F(median_age) = asymptote * G(median_age), giving asymptote = 2 * F(median_age),
+  # with F(median_age) estimated as 1 - at_risk(median_age) / sample_size.
+  compute_parameters_asymptote <- function(at_risk, sample_size) {
+    asymptote_estimate <- 2 * (1 - at_risk / sample_size)
+    if (asymptote_estimate <= 0 || asymptote_estimate >= 1) {
+      stop(paste0("Error: the asymptote implied by 'data' (2 * (1 - at_risk_median / sample_size) = ", round(asymptote_estimate, 3),
+                  ") must be between 0 and 1. Check 'data$at_risk' and 'sample_size', and whether follow-up in the source study was incomplete or heavily censored."))
+    }
+    alpha <- asymptote_estimate * at_risk
+    beta <- at_risk - alpha
+    return(list(g1 = alpha, g2 = beta))
+  }
+
   # Falls back to the shared (bare) prior when a sex/mode-specific one hasn't been set
   get_param <- function(param_name, suffix) {
     suffixed_param <- prior_params[[paste0(param_name, suffix)]]
     if (!is.null(suffixed_param)) return(suffixed_param)
     prior_params[[param_name]]
+  }
+
+  # Time interval risk data pathway: asymptote (skeleton only -- the
+  # threshold/median/first_quartile estimation for this pathway, driven by
+  # an age/at_risk table across many ages rather than just the 4 quartile
+  # rows, is not yet built. This scaffolds the 3 user-selectable paths for
+  # the asymptote step only, so the rest of the pathway can be built against
+  # it later.
+  compute_asymptote_time_interval <- function(asymptote_method, lifetime_risk, lifetime_risk_cv) {
+    if (asymptote_method == "default") {
+      # Path 1: no informative asymptote data provided, use flat Beta(1,1).
+      return(list(g1 = 1, g2 = 1))
+    }
+
+    if (asymptote_method == "lifetime_risk") {
+      # Path 2: user supplies a lifetime_risk estimate directly for use as a Beta mean.
+      if (is.null(lifetime_risk)) {
+        stop("Error: 'lifetime_risk' must be supplied when asymptote_method = 'lifetime_risk'.")
+      }
+      if (!is.numeric(lifetime_risk) || lifetime_risk <= 0 || lifetime_risk >= 1) {
+        stop("Error: 'lifetime_risk' must be a numeric value between 0 and 1.")
+      }
+      if (!is.numeric(lifetime_risk_cv) || lifetime_risk_cv <= 0) {
+        stop("Error: 'lifetime_risk_cv' must be a positive numeric value.")
+      }
+
+      # Concentration is derived from an assumed coefficient of variation
+      # (relative SD) on lifetime_risk, since a bare point estimate carries no
+      # reported CI to work with directly (unlike the ratio pathway). Reuses
+      # the same Beta mean/variance moment-matching (compute_concentration)
+      # the ratio pathway uses -- only the source of the target variance differs.
+      se <- lifetime_risk_cv * lifetime_risk
+      concentration <- compute_concentration(lifetime_risk, se^2)
+
+      g1 <- lifetime_risk * concentration
+      g2 <- concentration - g1
+      return(list(g1 = g1, g2 = g2))
+    }
+
+    if (asymptote_method == "estimate") {
+      # Path 3: derive the asymptote from the time interval risk data itself.
+      # Mechanism not yet decided -- stub for
+      # now, matching the compute_concentration_from_ci() stub convention in
+      # priorElicitation.R.
+      stop("Error: 'estimate' asymptote_method for the time interval risk data pathway is not yet implemented.")
+    }
+
+    stop("Error: 'asymptote_method' must be one of 'default', 'lifetime_risk', or 'estimate'.")
+  }
+
+  # Quartile pathway
+  # The literature's max age is read from data directly rather than assigned to a local,
+  # since max_age is already an argument (used by the prior predictive check).
+  if (!(is.null(data) || all(is.na(data)))) {
+    if (any(is.na(data$age)) || any(!sapply(data$age, is.numeric))) {
+      stop("Missing or non-numeric age entries in the data. Add numeric ages.")
+    }
+    if (any(is.na(data$at_risk)) || any(!sapply(data$at_risk, is.numeric))) {
+      stop("Missing or non-numeric risk entries in the data. Add individuals at risk.")
+    }
+    if (missing(sample_size) || is.null(sample_size) || !is.numeric(sample_size) || sample_size <= 0) {
+      stop("Error: 'sample_size' must be a positive numeric value when 'data' is supplied.")
+    }
+    if (any(data$at_risk > sample_size)) {
+      stop("Error: 'data$at_risk' cannot exceed 'sample_size'.")
+    }
+
+    min_age <- data["min", "age"]
+    first_quartile_age <- data["first_quartile", "age"]
+    median_age <- data["median", "age"]
+
+    if (!(min_age < first_quartile_age && first_quartile_age < median_age && median_age < data["max", "age"])) {
+      stop("Error: 'data$age' must be strictly increasing from min to first_quartile to median to max.")
+    }
+
+    risk_median <- data["median", "at_risk"]
+    risk_first_quartile <- data["first_quartile", "at_risk"]
+
+    res_median <- compute_parameters_median(median_age, risk_median, min_age, data["max", "age"])
+    res_first_quartile <- compute_parameters_quartile(first_quartile_age, risk_first_quartile, min_age, median_age)
+    res_asymptote <- compute_parameters_asymptote(risk_median, sample_size)
+
+    prior_params <- list(
+      asymptote = list(g1 = res_asymptote$g1, g2 = res_asymptote$g2),
+      threshold = list(min = max(0, min_age - 10), max = min_age + 10),
+      median = list(m1 = res_median$m1, m2 = res_median$m2),
+      first_quartile = list(q1 = res_first_quartile$q1, q2 = res_first_quartile$q2)
+    )
+  }
+
+  # Time interval risk data pathway
+  if (!is.null(asymptote_method)) {
+    prior_params$asymptote <- compute_asymptote_time_interval(asymptote_method, lifetime_risk, lifetime_risk_cv)
   }
 
   # Ratio pathway

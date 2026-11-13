@@ -55,14 +55,14 @@ distribution_data_default <- data.frame(
 #' @param max_age Numeric, the maximum age to plot the sampled curves over when prior_predictive_check is TRUE. Default is 94, matching penetrance()'s default max_age.
 #' @param prior_predictive_check Logical, indicating whether to draw n_draws samples from prior_params and plot the resulting penetrance curves overlaid, as a sanity check on the joint prior specification. Default is FALSE.
 #' @param n_draws Numeric, the number of curves to draw and overlay when prior_predictive_check is TRUE. Default is 50.
-#' @param sex_specific Logical, indicating whether the prior predictive check should draw and overlay male/female curves separately (TRUE) or a single non-sex-specific set of curves (FALSE). Default is FALSE.
+#' @param sex_specific Logical, indicating whether the priors built from data are returned separately for each sex (TRUE, as asymptote_male, asymptote_female, threshold_male, and so on) or once for both (FALSE, as asymptote_noSex and the bare asymptote, and so on). The same priors are returned under every name, since data is a single table. It also sets whether the prior predictive check draws and overlays male/female curves separately (TRUE) or a single non-sex-specific set of curves (FALSE). Default is FALSE.
 #'
 #' @details
 #' If data is provided (the quartile pathway), the median and first quartile priors are Beta distributions whose means are the reported ages rescaled onto [0, 1] and whose concentrations are the at_risk counts at those ages. The threshold prior is uniform from 10 years below to 10 years above the reported minimum age, with the lower bound floored at 0.
 #'
 #' The asymptote prior is a Beta distribution with mean 2 * (1 - at_risk_median / sample_size) and concentration at_risk_median. This follows from the reported median age being the age by which half of the eventually affected carriers are diagnosed, so the fraction diagnosed by that age is half the asymptote. If this estimate falls outside (0, 1), for example because follow-up in the source study was incomplete or heavily censored, an error is thrown.
 #'
-#' If asymptote_method or ratio is also supplied, the asymptote prior from those pathways overrides the one derived from data.
+#' If sex_specific is TRUE, the priors derived from data are returned for both sexes (e.g. median_male and median_female) and are identical, since a single table carries no sex-specific information. If asymptote_method or ratio is also supplied, the asymptote prior from those pathways overrides the one derived from data.
 #'
 #' @return A list of the prior parameters for asymptote, threshold, median, and first_quartile, to be passed as prior_params to penetrance().
 #'
@@ -249,12 +249,25 @@ makePriors <- function(data,
     res_first_quartile <- compute_parameters_quartile(first_quartile_age, risk_first_quartile, min_age, median_age)
     res_asymptote <- compute_parameters_asymptote(risk_median, sample_size)
 
-    prior_params <- list(
+    quartile_priors <- list(
       asymptote = list(g1 = res_asymptote$g1, g2 = res_asymptote$g2),
       threshold = list(min = max(0, min_age - 10), max = min_age + 10),
       median = list(m1 = res_median$m1, m2 = res_median$m2),
       first_quartile = list(q1 = res_first_quartile$q1, q2 = res_first_quartile$q2)
     )
+
+    # The one table is the only information available, so it is used for both sexes
+    # when sex_specific is TRUE, and for noSex (also kept under the bare name) otherwise.
+    prior_params <- list()
+    for (parameter_name in names(quartile_priors)) {
+      if (sex_specific) {
+        prior_params[[paste0(parameter_name, "_male")]] <- quartile_priors[[parameter_name]]
+        prior_params[[paste0(parameter_name, "_female")]] <- quartile_priors[[parameter_name]]
+      } else {
+        prior_params[[parameter_name]] <- quartile_priors[[parameter_name]]
+        prior_params[[paste0(parameter_name, "_noSex")]] <- quartile_priors[[parameter_name]]
+      }
+    }
   }
 
   # Time interval risk data pathway

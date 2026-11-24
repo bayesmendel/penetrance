@@ -17,38 +17,6 @@ prior_params_default <- list(
   first_quartile = list(q1 = 6, q2 = 3)
 )
 
-#' Default Risk Proportion Data
-#'
-#' Default proportions of people at risk used in the \code{makePriors} function.
-#'
-#' @format A data frame with the following columns:
-#' \describe{
-#'   \item{median}{Proportion of people at risk at the median age.}
-#'   \item{first_quartile}{Proportion of people at risk at the first quartile age.}
-#'   \item{max_age}{Proportion of people at risk at the maximum age.}
-#' }
-#' @export
-risk_proportion_default <- data.frame(
-  median = 0.5,
-  first_quartile = 0.9,
-  max_age = 0.1
-)
-
-#' Default Distribution Data
-#'
-#' Default data frame structure with row names for use in the \code{makePriors} function.
-#'
-#' @format A data frame with the following columns:
-#' \describe{
-#'   \item{age}{Age values (NA for default).}
-#'   \item{at_risk}{Proportion of people at risk (NA for default).}
-#' }
-#' @export
-distribution_data_default <- data.frame(
-  row.names = c("min", "first_quartile", "median", "max"),
-  age = c(NA, NA, NA, NA),
-  at_risk = c(NA, NA, NA, NA)
-)
 #' Make Priors
 #'
 #' This function generates prior distributions based on user input or default parameters.

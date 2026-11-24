@@ -14,6 +14,7 @@ penetrance(
   ncores = 6,
   max_age = 94,
   baseline_data = baseline_data_default,
+  cancer_type = NULL,
   remove_proband = FALSE,
   age_imputation = FALSE,
   median_max = TRUE,
@@ -22,12 +23,8 @@ penetrance(
   burn_in = 0,
   thinning_factor = 1,
   imp_interval = 100,
-  distribution_data = distribution_data_default,
   allele_freq = 1e-04,
-  sample_size = NULL,
-  ratio = NULL,
   prior_params = prior_params_default,
-  risk_proportion = risk_proportion_default,
   summary_stats = TRUE,
   rejection_rates = TRUE,
   density_plots = TRUE,
@@ -102,7 +99,22 @@ the combined population. The length (or number of rows)
 should ideally correspond to \code{max_age}.
 Default data is provided for Colorectal cancer from SEER (up to age 94). If the
 number of rows/length does not match \code{max_age}, the data will be truncated or
-extended with the last value.}
+extended with the last value. Only one of \code{baseline_data} or \code{cancer_type} needs
+to be specified to select which baseline data is used. See \code{cancer_type} below
+for the behavior when both are supplied.}
+
+\item{cancer_type}{Optional character string naming a baseline dataset
+to use instead of manually supplying \code{baseline_data}. When set, \code{baseline_data}
+is looked up automatically for the named cancer, so only \code{cancer_type} needs to
+be passed. Valid values are
+\code{"Colorectal"}, \code{"Brain"}, \code{"Breast"}, \code{"Endometrial"}, \code{"Gastric"},
+\code{"Hepatobiliary"}, \code{"Kidney"}, \code{"Leukemia"}, \code{"Melanoma"}, \code{"Osteosarcoma"},
+\code{"Ovarian"}, \code{"Pancreas"}, \code{"Prostate"}, \code{"Small Intestine"},
+\code{"Soft Tissue Sarcoma"}, \code{"Thyroid"}, and \code{"Urinary Bladder"}; an unrecognized
+value will stop with an error listing these options. Default is \code{NULL} (no cancer type selected, \code{baseline_data}
+is used as passed or as its own default). If both \code{baseline_data} and \code{cancer_type}
+are supplied, the \code{baseline_data} value takes precedence and a warning is
+issued noting that \code{cancer_type} was ignored.}
 
 \item{remove_proband}{Logical, indicating whether to remove probands from the
 analysis. Default is FALSE.}
@@ -127,21 +139,13 @@ Default is 1 (no thinning).}
 \item{imp_interval}{Integer, the interval at which age imputation should be
 performed when age_imputation = TRUE.}
 
-\item{distribution_data}{Data for generating prior distributions.}
-
 \item{allele_freq}{Numeric, the population allele frequency of the risk variant (p).
 This will be automatically converted to carrier prevalence (approximately 2p for
 rare alleles) for internal Bayesian calculations. Default is 0.0001.
 Must be between 0 and 1. The function will warn if the value seems unusually
 high (> 1\%), which may indicate confusion with carrier prevalence.}
 
-\item{sample_size}{Optional numeric, sample size for distribution generation.}
-
-\item{ratio}{Optional numeric, ratio parameter for distribution generation.}
-
-\item{prior_params}{List, parameters for prior distributions.}
-
-\item{risk_proportion}{Numeric, proportion of risk for distribution generation.}
+\item{prior_params}{List of prior hyperparameters, typically the output of \code{\link{makePriors}}. Bare entries (e.g. \code{median}) are applied to every sex slot, and suffixed entries (e.g. \code{median_male}) override them. Default is \code{prior_params_default}.}
 
 \item{summary_stats}{Logical, indicating whether to include summary statistics
 in the output. Default is TRUE.}
@@ -204,21 +208,6 @@ baseline_data_default <- data.frame(
   Female = rep(0.01, 94),
   Male = rep(0.01, 94)
 )
-
-# Create example distribution data
-distribution_data_default <- data.frame(
-  Age = 1:94,
-  Risk = rep(0.01, 94)
-)
-
-# Create example prior parameters
-prior_params_default <- list(
-  shape = 2,
-  scale = 50
-)
-
-# Create example risk proportion
-risk_proportion_default <- 0.5
 
 # Create a simple example pedigree
 example_pedigree <- data.frame(

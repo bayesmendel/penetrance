@@ -27,3 +27,4 @@
 ^search\.json$
 ^sitemap\.xml$
 ^penetrance_postprocess\.R$
+^R/priorElicitation\.R\.old$

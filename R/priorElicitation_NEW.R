@@ -17,24 +17,6 @@ prior_params_default <- list(
   first_quartile = list(q1 = 6, q2 = 3)
 )
 
-# TODO DEFAULT RISK PROPORTION DATA
-# Decide what to do here/how to consider censoring
-
-#' Default Distribution Data
-#'
-#' Default data frame structure with row names for use in the \code{makePriors} function.
-#'
-#' @format A data frame with the following columns:
-#' \describe{
-#'   \item{age}{Age values (NA for default).}
-#'   \item{at_risk}{Count of people at risk (NA for default).}
-#' }
-#' @export
-distribution_data_default <- data.frame(
-  row.names = c("min", "first_quartile", "median", "max"),
-  age = c(NA, NA, NA, NA),
-  at_risk = c(NA, NA, NA, NA)
-)
 # Checks a prior_params list and expands it to the suffixed keys of the active mode. For each parameter and each active slot, the suffixed entry is kept if present, otherwise the bare entry is copied in; the bare entries are then dropped. Used by makePriors() and penetrance().
 expand_prior_params_internal <- function(prior_params, sex_specific) {
   if (!is.list(prior_params)) {
@@ -111,10 +93,10 @@ expand_prior_params_internal <- function(prior_params, sex_specific) {
 #' @param max_age Numeric, the maximum age to plot the sampled curves over when prior_predictive_check is TRUE. Default is 94, matching penetrance()'s default max_age.
 #' @param prior_predictive_check Logical, indicating whether to draw n_draws samples from prior_params and plot the resulting penetrance curves overlaid, as a sanity check on the joint prior specification. Default is FALSE.
 #' @param n_draws Numeric, the number of curves to draw and overlay when prior_predictive_check is TRUE. Default is 50.
-#' @param sex_specific Logical. TRUE returns the priors separately for each sex, FALSE returns one for both (e.g. asymptote_noSex). Default is FALSE.
+#' @param sex_specific Logical. TRUE returns the priors separately for each sex, FALSE returns one for both (e.g. asymptote_noSex). Default is TRUE, matching penetrance().
 #'
 #' @details
-#' If data is provided (the quartile pathway), the median and first quartile priors are Beta distributions whose means are the reported ages rescaled onto [0, 1] and whose concentrations are the at_risk counts at those ages, capped at 30 so the prior stays only moderately informative. The threshold prior is uniform from 10 years below to 10 years above the reported minimum age, with the lower bound floored at 0.
+#' If data is provided (the quartile pathway), the median and first quartile priors are Beta distributions whose means are the reported ages rescaled onto the interval from 0 to 1 and whose concentrations are the at_risk counts at those ages, capped at 30 so the prior stays only moderately informative. The threshold prior is uniform from 10 years below to 10 years above the reported minimum age, with the lower bound floored at 0.
 #'
 #' The reported minimum and maximum ages are stored in the result as lower_anchor and upper_anchor, and the sampler rescales the median and first quartile on those anchors so they are scored on the same scale they were elicited on.
 #'
@@ -138,7 +120,7 @@ makePriors <- function(data = NULL,
                       prior_params = prior_params_default, baseline_data,
                       asymptote_method = NULL,
                       lifetime_risk = NULL, lifetime_risk_cv = 0.15,
-                      max_age = 94, prior_predictive_check = FALSE, n_draws = 50, sex_specific = FALSE) {
+                      max_age = 94, prior_predictive_check = FALSE, n_draws = 50, sex_specific = TRUE) {
 
   data_supplied <- !(is.null(data) || all(is.na(data)))
 

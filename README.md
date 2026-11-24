@@ -169,15 +169,12 @@ Available options include:
   Default is 1.
 - `imp_interval`: Integer, the interval at which age imputation is
   performed when `age_imputation = TRUE`. Default is 100.
-- `distribution_data`: Data used to generate prior distributions.
 - `allele_freq`: Numeric, the population allele frequency of the risk
   variant. Default is 0.0001.
-- `sample_size`: Optional numeric sample size for distribution
-  generation.
-- `ratio`: Optional numeric ratio for distribution generation.
-- `prior_params`: A list containing prior-distribution parameters.
-- `risk_proportion`: Numeric, the risk proportion used for distribution
-  generation.
+- `prior_params`: A list of prior hyperparameters, typically the output
+  of `makePriors()` (see “Specifying priors with `makePriors()`” below).
+  Bare entries (e.g. `median`) apply to every sex, and suffixed entries
+  (e.g. `median_male`) override them. Default is `prior_params_default`.
 - `summary_stats`: Logical, indicating whether to include summary
   statistics in the output. Default is `TRUE`.
 - `rejection_rates`: Logical, indicating whether to include rejection
@@ -198,6 +195,50 @@ Available options include:
   penetrance plots. Default is 0.95.
 - `sex_specific`: Logical, indicating whether to use sex-specific
   parameters in the analysis. Default is `TRUE`.
+
+### Specifying priors with `makePriors()`
+
+By default, `penetrance()` uses the weakly informative priors in
+`prior_params_default`. To build priors from published information, call
+`makePriors()` first and pass its result to `penetrance()` through the
+`prior_params` argument. The `sex_specific` setting of `makePriors()`
+must match that of `penetrance()` (both default to `TRUE`); a mismatch
+produces an error.
+
+Two pathways are available:
+
+- **Summary quartile data** (`data`, `sample_size`): the ages at which
+  the minimum, first quartile, median and maximum were reported, the
+  number of people at risk at each of those ages, and the sample size of
+  the source study. This sets the priors for all four parameters.
+  Concentrations derived from the at-risk counts are capped at 30, so
+  the priors remain only moderately informative.
+- **Risk ratio** (`ratio`, `ratio_is_or`, `ratio_ci_lower`,
+  `ratio_ci_upper`, `baseline_data`): a published relative risk or odds
+  ratio with its confidence interval, relative to the baseline risk. This
+  sets the prior for the asymptote only. A single Beta distribution is
+  fitted to the confidence interval, whose coverage is given by
+  `ci_level` (default 0.95).
+
+``` r
+# Quartile pathway: ages and numbers at risk reported by a published study
+study <- data.frame(
+  row.names = c("min", "first_quartile", "median", "max"),
+  age = c(35, 50, 60, 80),
+  at_risk = c(950, 850, 700, 300)
+)
+priors <- makePriors(data = study, sample_size = 1000)
+
+# Ratio pathway: relative risks with 95% confidence intervals, for each sex
+priors <- makePriors(
+  ratio = list(male = 5, female = 4), ratio_is_or = FALSE,
+  ratio_ci_lower = list(male = 3, female = 2.5),
+  ratio_ci_upper = list(male = 8, female = 7),
+  baseline_data = baseline_data_default
+)
+
+output <- penetrance(pedigree = pedigree_list, prior_params = priors)
+```
 
 ### Additional user inputs
 

@@ -103,9 +103,15 @@ The following settings for the prior distribution specification are available:
 - Default: The default setting employs pre-specified, uninformative priors.
 - Custom Parameters: The user can tune the parameters of the default setting directly 
 by overwriting the parameters in the prior_params_default object.
-- Prior Elicitation from Existing Studies: The user can input data from previous 
-penetrance studies to automatically elicit customized priors. The default setting is 
-adjusted to reflect the additional information based on the provided inputs.
+- Prior Elicitation from Existing Studies: The user can input data from previous
+penetrance studies to automatically elicit customized priors with the `makePriors()`
+function. The result is passed to `penetrance()` through the `prior_params` argument.
+Two pathways are available: summary quartile data (the ages at which the minimum, first quartile,
+median and maximum were reported, together with the number of people at risk at each age
+and the sample size of the source study), which sets the priors for all four parameters;
+and a published relative risk or odds ratio with its confidence interval, which sets the
+prior for the asymptote only. The `sex_specific` setting of `makePriors()` must match that
+of `penetrance()`; both default to `TRUE`.
 
 ```{r}
 # The default prior 
@@ -116,10 +122,27 @@ prior_params_default <- list(
     first_quartile = list(q1 = 6, q2 = 3)
 )
 
-distribution_data_test <- data.frame(
+```
+
+The following code illustrates the two elicitation pathways. The first uses summary
+quartile data from a published study; the second uses a published relative risk with
+its 95% confidence interval for each sex.
+
+```{r, eval=FALSE}
+# Quartile pathway: ages and numbers at risk reported by a published study
+study <- data.frame(
   row.names = c("min", "first_quartile", "median", "max"),
-  age = c(NA, NA, NA, NA),
-  at_risk = c(NA, NA, NA, NA)
+  age = c(35, 50, 60, 80),
+  at_risk = c(950, 850, 700, 300)
+)
+priors <- makePriors(data = study, sample_size = 1000)
+
+# Ratio pathway: relative risks with 95% confidence intervals, for each sex
+priors <- makePriors(
+  ratio = list(male = 5, female = 4), ratio_is_or = FALSE,
+  ratio_ci_lower = list(male = 3, female = 2.5),
+  ratio_ci_upper = list(male = 8, female = 7),
+  baseline_data = baseline_data_default
 )
 ```
 
@@ -143,12 +166,8 @@ Available options are:
 #' @param burn_in Numeric, the fraction of results to discard as burn-in (0 to 1). Default is 0 (no burn-in).
 #' @param thinning_factor Integer, the factor by which to thin the results. Default is 1 (no thinning).
 #' @param imp_interval Integer, the interval at which age imputation should be performed when age_imputation = TRUE.
-#' @param distribution_data Data for generating prior distributions.
 #' @param allele_freq Numeric, the population allele frequency of the risk variant (p). This will be automatically converted to carrier prevalence (approximately 2p for rare diseases) for internal Bayesian calculations. Default is 0.0001.
-#' @param sample_size Optional numeric, sample size for distribution generation.
-#' @param ratio Optional numeric, ratio parameter for distribution generation.
-#' @param prior_params List, parameters for prior distributions.
-#' @param risk_proportion Numeric, proportion of risk for distribution generation.
+#' @param prior_params List of prior hyperparameters, typically the output of `makePriors()`. Bare entries (e.g. `median`) apply to every sex, and suffixed entries (e.g. `median_male`) override them. Default is `prior_params_default`.
 #' @param summary_stats Logical, indicating whether to include summary statistics in the output. Default is TRUE.
 #' @param rejection_rates Logical, indicating whether to include rejection rates in the output. Default is TRUE.
 #' @param density_plots Logical, indicating whether to include density plots in the output. Default is TRUE.

@@ -14,7 +14,7 @@ makePriors(
 )
 }
 \arguments{
-\item{data}{A data frame containing age and risk data. If NULL or contains NA values, default parameters are used.}
+\item{data}{A data frame containing age and risk data. If NULL or entirely NA, default parameters are used. If provided, all entries in the age column must be numeric and non-NA.}
 
 \item{sample_size}{Numeric, the total sample size used for risk proportion calculations.}
 

@@ -119,10 +119,17 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
   # Set seed for the chain
   set.seed(seed)
 
+  # Reads one parameter's prior for a sex slot: the suffixed entry (e.g. median_male) if present, otherwise the bare one
+  get_prior <- function(parameter_name, sex_slot) {
+    suffixed_prior <- prior_distributions$prior_params[[paste0(parameter_name, "_", sex_slot)]]
+    if (!is.null(suffixed_prior)) return(suffixed_prior)
+    prior_distributions$prior_params[[parameter_name]]
+  }
+
   # Prepare initial age imputation if enabled
   if (age_imputation) {
     # Initialize ages
-    threshold <- prior_distributions$prior_params$threshold$min
+    threshold <- min(sapply(if (sex_specific) c("male", "female") else "noSex", function(sex_slot) get_prior("threshold", sex_slot)$min))
     age_density <- calculateEmpiricalDensity(data)
     init_result <- imputeAgesInit(data, threshold, max_age)
     data <- init_result$data
@@ -230,11 +237,9 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
     baseline_mid_female <- which(baseline_female_cum >= midpoint_prob_female)[1]
 
     # Function to initialize parameters
-    draw_initial_params <- function(data, prior_distributions) {
-      lower_bound <- prior_distributions$prior_params$threshold$min
-      upper_bound <- prior_distributions$prior_params$threshold$max
-      male <- init_one_group(data[data$sex == 1 & data$aff == 1, ], lower_bound, upper_bound, baseline_male_cum)
-      female <- init_one_group(data[data$sex == 2 & data$aff == 1, ], lower_bound, upper_bound, baseline_female_cum)
+    draw_initial_params <- function(data) {
+      male <- init_one_group(data[data$sex == 1 & data$aff == 1, ], get_prior("threshold", "male")$min, get_prior("threshold", "male")$max, baseline_male_cum)
+      female <- init_one_group(data[data$sex == 2 & data$aff == 1, ], get_prior("threshold", "female")$min, get_prior("threshold", "female")$max, baseline_female_cum)
       return(list(
         asymptote_male = male$asymptote,
         asymptote_female = female$asymptote,
@@ -279,10 +284,8 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
     baseline_mid <- which(baseline_cum >= midpoint_prob)[1]
 
     # Function to initialize parameters
-    draw_initial_params <- function(data, prior_distributions) {
-      lower_bound <- prior_distributions$prior_params$threshold$min
-      upper_bound <- prior_distributions$prior_params$threshold$max
-      noSex <- init_one_group(data[data$aff == 1, ], lower_bound, upper_bound, baseline_cum)
+    draw_initial_params <- function(data) {
+      noSex <- init_one_group(data[data$aff == 1, ], get_prior("threshold", "noSex")$min, get_prior("threshold", "noSex")$max, baseline_cum)
       return(list(
         asymptote = noSex$asymptote,
         threshold = noSex$threshold,
@@ -293,7 +296,7 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
   }
 
   # Initialize parameters using the function draw_initial_params
-  initial_params <- draw_initial_params(data = data, prior_distributions = prior_distributions)
+  initial_params <- draw_initial_params(data = data)
   params_current <- initial_params
   current_states <- list()
 
@@ -338,8 +341,31 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
   }
 
   # Function to calculate the (log) prior probabilities
-  calculate_log_prior <- function(params, prior_distributions, max_age) {
-    prior_params <- prior_distributions$prior_params
+  # Log prior of one sex slot's four parameters. Median and first quartile are rescaled on the anchors stored in prior_params
+  # (the scale they were elicited on) when present, otherwise on the running threshold and max_age.
+  score_log_prior_group <- function(sex_slot, asymptote, threshold, median, first_quartile) {
+    lower_anchor <- if (is.null(prior_distributions$prior_params$lower_anchor)) threshold else prior_distributions$prior_params$lower_anchor
+    upper_anchor <- if (is.null(prior_distributions$prior_params$upper_anchor)) max_age else prior_distributions$prior_params$upper_anchor
+
+    if (median <= lower_anchor) {
+      return(-Inf)
+    }
+
+    scaled_median <- (median - lower_anchor) / (upper_anchor - lower_anchor)
+    scaled_first_quartile <- (first_quartile - lower_anchor) / (median - lower_anchor)
+
+    asymptote_prior <- get_prior("asymptote", sex_slot)
+    threshold_prior <- get_prior("threshold", sex_slot)
+    median_prior <- get_prior("median", sex_slot)
+    first_quartile_prior <- get_prior("first_quartile", sex_slot)
+
+    return(dbeta(asymptote, asymptote_prior$g1, asymptote_prior$g2, log = TRUE) +
+             dunif(threshold, threshold_prior$min, threshold_prior$max, log = TRUE) +
+             dbeta(scaled_median, median_prior$m1, median_prior$m2, log = TRUE) +
+             dbeta(scaled_first_quartile, first_quartile_prior$q1, first_quartile_prior$q2, log = TRUE))
+  }
+
+  calculate_log_prior <- function(params, max_age) {
 
     if (sex_specific) {
       # Add checks to prevent division by zero
@@ -356,49 +382,10 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
         return(-Inf)  # Invalid parameter, reject immediately
       }
       
-      scaled_asymptote_male <- params$asymptote_male
-      scaled_asymptote_female <- params$asymptote_female
-
-      scaled_threshold_male <- params$threshold_male
-      scaled_threshold_female <- params$threshold_female
-
-      scaled_median_male <- (params$median_male - params$threshold_male) / (max_age - params$threshold_male)
-      scaled_median_female <- (params$median_female - params$threshold_female) / (max_age - params$threshold_female)
-
-      scaled_first_quartile_male <- (params$first_quartile_male - params$threshold_male) /
-        (params$median_male - params$threshold_male)
-      scaled_first_quartile_female <- (params$first_quartile_female - params$threshold_female) /
-        (params$median_female - params$threshold_female)
-
-      log_prior_asymptote_male <- dbeta(scaled_asymptote_male, prior_params$asymptote$g1, prior_params$asymptote$g2, log = TRUE)
-      log_prior_asymptote_female <- dbeta(scaled_asymptote_female, prior_params$asymptote$g1, prior_params$asymptote$g2, log = TRUE)
-
-      log_prior_threshold_male <- dunif(scaled_threshold_male, prior_params$threshold$min, prior_params$threshold$max, log = TRUE)
-      log_prior_threshold_female <- dunif(scaled_threshold_female, prior_params$threshold$min, prior_params$threshold$max, log = TRUE)
-
-      log_prior_median_male <- dbeta(scaled_median_male, prior_params$median$m1, prior_params$median$m2, log = TRUE)
-      log_prior_median_female <- dbeta(scaled_median_female, prior_params$median$m1, prior_params$median$m2, log = TRUE)
-
-      log_prior_first_quartile_male <- dbeta(scaled_first_quartile_male, prior_params$first_quartile$q1, prior_params$first_quartile$q2, log = TRUE)
-      log_prior_first_quartile_female <- dbeta(scaled_first_quartile_female, prior_params$first_quartile$q1, prior_params$first_quartile$q2, log = TRUE)
-
-      log_prior_total <- log_prior_asymptote_male + log_prior_asymptote_female +
-        log_prior_threshold_male + log_prior_threshold_female +
-        log_prior_median_male + log_prior_median_female +
-        log_prior_first_quartile_male + log_prior_first_quartile_female
+      log_prior_total <- score_log_prior_group("male", params$asymptote_male, params$threshold_male, params$median_male, params$first_quartile_male) +
+        score_log_prior_group("female", params$asymptote_female, params$threshold_female, params$median_female, params$first_quartile_female)
     } else {
-      scaled_asymptote <- params$asymptote
-      scaled_threshold <- params$threshold
-      scaled_median <- (params$median - params$threshold) / (max_age - params$threshold)
-      scaled_first_quartile <- (params$first_quartile - params$threshold) /
-        (params$median - params$threshold)
-
-      log_prior_asymptote <- dbeta(scaled_asymptote, prior_params$asymptote$g1, prior_params$asymptote$g2, log = TRUE)
-      log_prior_threshold <- dunif(scaled_threshold, prior_params$threshold$min, prior_params$threshold$max, log = TRUE)
-      log_prior_median <- dbeta(scaled_median, prior_params$median$m1, prior_params$median$m2, log = TRUE)
-      log_prior_first_quartile <- dbeta(scaled_first_quartile, prior_params$first_quartile$q1, prior_params$first_quartile$q2, log = TRUE)
-
-      log_prior_total <- log_prior_asymptote + log_prior_threshold + log_prior_median + log_prior_first_quartile
+      log_prior_total <- score_log_prior_group("noSex", params$asymptote, params$threshold, params$median, params$first_quartile)
     }
 
     return(log_prior_total)
@@ -454,12 +441,12 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
       if (proposal_vector[2] <= 0 || proposal_vector[2] >= 1) valid_proposal <- FALSE
 
       # Threshold checks (male and female must be within prior bounds, strictly)
-      if (proposal_vector[3] <= prior_distributions$prior_params$threshold$min ||
-        proposal_vector[3] >= prior_distributions$prior_params$threshold$max) {
+      if (proposal_vector[3] <= get_prior("threshold", "male")$min ||
+        proposal_vector[3] >= get_prior("threshold", "male")$max) {
         valid_proposal <- FALSE
       }
-      if (proposal_vector[4] <= prior_distributions$prior_params$threshold$min ||
-        proposal_vector[4] >= prior_distributions$prior_params$threshold$max) {
+      if (proposal_vector[4] <= get_prior("threshold", "female")$min ||
+        proposal_vector[4] >= get_prior("threshold", "female")$max) {
         valid_proposal <- FALSE
       }
 
@@ -484,8 +471,8 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
       if (proposal_vector[1] <= 0 || proposal_vector[1] >= 1) valid_proposal <- FALSE # Asymptote must be strictly between 0 and 1
 
       # Threshold check
-      if (proposal_vector[2] <= prior_distributions$prior_params$threshold$min ||
-        proposal_vector[2] >= prior_distributions$prior_params$threshold$max) {
+      if (proposal_vector[2] <= get_prior("threshold", "noSex")$min ||
+        proposal_vector[2] >= get_prior("threshold", "noSex")$max) {
         valid_proposal <- FALSE
       }
 
@@ -641,7 +628,7 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
     }
 
     loglikelihood_current <- call_loglikelihood(params_current)
-    logprior_current <- calculate_log_prior(params_current, prior_distributions, max_age)
+    logprior_current <- calculate_log_prior(params_current, max_age)
 
     # Record the outputs of the evaluation for the current set of parameters
     out$loglikelihood_current[i] <- loglikelihood_current$loglik
@@ -653,7 +640,7 @@ mhChain <- function(seed, n_iter, burn_in, chain_id, ncores, data, twins, max_ag
     # If valid proposal, calculate the acceptance ratio and store
     if (valid_proposal) {
       loglikelihood_proposal <- call_loglikelihood(params_proposal)
-      logprior_proposal <- calculate_log_prior(params_proposal, prior_distributions, max_age)
+      logprior_proposal <- calculate_log_prior(params_proposal, max_age)
       log_acceptance_ratio <- (loglikelihood_proposal$loglik + logprior_proposal) - (loglikelihood_current$loglik + logprior_current)
 
       # Metropolis-Hastings acceptance step

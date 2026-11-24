@@ -87,16 +87,12 @@
 #' Default is 1 (no thinning).
 #' @param imp_interval Integer, the interval at which age imputation should be 
 #' performed when age_imputation = TRUE.
-#' @param distribution_data Data for generating prior distributions.
 #' @param allele_freq Numeric, the population allele frequency of the risk variant (p). 
 #' This will be automatically converted to carrier prevalence (approximately 2p for 
 #' rare alleles) for internal Bayesian calculations. Default is 0.0001.
 #' Must be between 0 and 1. The function will warn if the value seems unusually 
 #' high (> 1%), which may indicate confusion with carrier prevalence.
-#' @param sample_size Optional numeric, sample size for distribution generation.
-#' @param ratio Optional numeric, ratio parameter for distribution generation.
-#' @param prior_params List, parameters for prior distributions.
-#' @param risk_proportion Numeric, proportion of risk for distribution generation.
+#' @param prior_params List of prior hyperparameters, typically the output of \code{\link{makePriors}}. Bare entries (e.g. \code{median}) are applied to every sex slot, and suffixed entries (e.g. \code{median_male}) override them. Default is \code{prior_params_default}.
 #' @param summary_stats Logical, indicating whether to include summary statistics 
 #' in the output. Default is TRUE.
 #' @param rejection_rates Logical, indicating whether to include rejection rates 
@@ -131,21 +127,6 @@
 #'   Female = rep(0.01, 94),
 #'   Male = rep(0.01, 94)
 #' )
-#'
-#' # Create example distribution data
-#' distribution_data_default <- data.frame(
-#'   Age = 1:94,
-#'   Risk = rep(0.01, 94)
-#' )
-#'
-#' # Create example prior parameters
-#' prior_params_default <- list(
-#'   shape = 2,
-#'   scale = 50
-#' )
-#'
-#' # Create example risk proportion
-#' risk_proportion_default <- 0.5
 #'
 #' # Create a simple example pedigree
 #' example_pedigree <- data.frame(
@@ -196,12 +177,8 @@ penetrance <- function(pedigree,
                        burn_in = 0,
                        thinning_factor = 1,
                        imp_interval = 100,
-                       distribution_data = distribution_data_default,
                        allele_freq = 0.0001,
-                       sample_size = NULL,
-                       ratio = NULL,
                        prior_params = prior_params_default,
-                       risk_proportion = risk_proportion_default,
                        summary_stats = TRUE,
                        rejection_rates = TRUE,
                        density_plots = TRUE,
@@ -439,15 +416,9 @@ penetrance <- function(pedigree,
   # Apply the transformation to adjust the format for the clipp package
   data <- do.call(rbind, lapply(pedigree, transformDF))
 
-  # Create the prior distributions
-  prop <- makePriors(
-    data = distribution_data,
-    sample_size = sample_size,
-    ratio = ratio,
-    prior_params = prior_params,
-    risk_proportion = risk_proportion,
-    baseline_data = baseline_data
-  )
+  # Validate prior_params and expand it to the suffixed keys of the active mode
+  prior_params <- expand_prior_params_internal(prior_params, sex_specific)
+  prop <- list(prior_params = prior_params)
 
   cores <- parallel::detectCores()
 
